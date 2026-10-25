@@ -67,18 +67,3 @@ export interface TimelineEntry {
   certificate?: EvidenceLink;
   current?: boolean;
 }
-
-export type NetworkNodeKind = "input" | "hub" | "sdk" | "vision" | "automation" | "data" | "output";
-
-export interface NetworkNode {
-  id: string;
-  label: string;
-  /** Short technical role shown under the title in the detail panel. */
-  role: string;
-  detail: string;
-  /** What the scene demonstrates when this node is selected. */
-  shows: string;
-  link: EvidenceLink;
-  position: [number, number, number];
-  kind: NetworkNodeKind;
-}
