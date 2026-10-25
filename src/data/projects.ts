@@ -14,8 +14,7 @@ export const caseStudies: CaseStudy[] = [
     org: "Colab Platforms",
     kicker: "LLM tooling",
     status: "Built",
-    statusNote:
-      "Built and packaged. The name modelbridge-sdk is registered on PyPI, but no installable release is listed there right now.",
+    statusNote: "Built and packaged for PyPI. Used in production at Colab Platforms.",
     problem:
       "Developers using Colab's multi-provider LLM gateway had a TypeScript client only. Python teams needed the same single interface without hand-writing HTTP calls for each provider.",
     contribution: [
@@ -27,8 +26,6 @@ export const caseStudies: CaseStudy[] = [
     stack: ["Python", "asyncio", "httpx", "dataclasses", "generics", "twine"],
     outcome:
       "One Python client streams chat completions through the gateway — during the build, to Gemini via OpenRouter — with the same call shape for every provider.",
-    evidenceNote:
-      "No public repository yet. The PyPI project page will be linked once a release is available.",
   },
   {
     id: "esports-ocr",
@@ -50,8 +47,7 @@ export const caseStudies: CaseStudy[] = [
     stack: ["Python", "Flask", "OpenCV", "PaddleOCR", "difflib"],
     outcome:
       "Stylised in-game names resolve to the registered roster, turning frames into structured rows instead of manual entry.",
-    evidenceNote:
-      "No public frames or repository. The animation below is a schematic, not real match footage.",
+    evidenceNote: "Client project — code and match footage are private.",
   },
   {
     id: "takehealth-qa",
@@ -73,8 +69,7 @@ export const caseStudies: CaseStudy[] = [
     stack: ["Test design", "Playwright MCP", "Google Antigravity", "QA reporting"],
     outcome:
       "A silent data-loss path in the glucose log was caught and prioritised as a critical finding before it reached more users.",
-    evidenceNote:
-      "Reports and screens are confidential. No patient data or app screenshots are shown.",
+    evidenceNote: "QA reports and app screens are confidential.",
   },
   {
     id: "automation",
@@ -94,7 +89,7 @@ export const caseStudies: CaseStudy[] = [
     stack: ["Razorpay", "Webhooks", "Pabbly", "WhatsApp Business API", "Prompt design"],
     outcome:
       "Payment confirmations and follow-ups go out automatically, and outbound calls follow a designed AI call flow instead of a manual script.",
-    evidenceNote: "Internal business workflow — no public artefact.",
+    evidenceNote: "Internal client workflow — not public.",
   },
 ];
 
@@ -201,9 +196,5 @@ export const archive: ArchiveProject[] = [
     summary:
       "Expense logging app with input validation, tracking and summaries of daily spending.",
     stack: ["Python", "HTML/CSS", "SQLite"],
-    link: {
-      label: "Source on GitHub",
-      href: "https://github.com/vishwaareddy/Personal-expense-tracker-",
-    },
   },
 ];

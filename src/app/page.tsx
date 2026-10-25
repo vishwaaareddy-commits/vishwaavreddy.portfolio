@@ -10,6 +10,10 @@ import { MoreBuilds } from "@/components/sections/MoreBuilds";
 import { ProofStrip } from "@/components/sections/ProofStrip";
 import { SelectedWork } from "@/components/sections/SelectedWork";
 import { profile } from "@/data/profile";
+import { getModelBridgeRelease } from "@/lib/pypi";
+
+// Re-check PyPI status and downloads once a day.
+export const revalidate = 86400;
 
 const personJsonLd = {
   "@context": "https://schema.org",
@@ -22,14 +26,15 @@ const personJsonLd = {
   sameAs: [profile.links.github, profile.links.linkedin],
 };
 
-export default function Home() {
+export default async function Home() {
+  const release = await getModelBridgeRelease();
   return (
     <>
       <Header />
       <main id="main">
-        <Hero />
+        <Hero release={release} />
         <ProofStrip />
-        <SelectedWork />
+        <SelectedWork release={release} />
         <MoreBuilds />
         <Capabilities />
         <Experience />

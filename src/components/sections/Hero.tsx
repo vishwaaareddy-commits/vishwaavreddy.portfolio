@@ -2,8 +2,9 @@ import { ArrowDown, Download } from "lucide-react";
 import { HeroVisual } from "@/components/three/HeroVisual";
 import { StreamingText } from "@/components/ui/StreamingText";
 import { profile } from "@/data/profile";
+import type { ModelBridgeRelease } from "@/lib/pypi";
 
-export function Hero() {
+export function Hero({ release }: { release: ModelBridgeRelease }) {
   return (
     <section
       id="top"
@@ -74,7 +75,9 @@ export function Hero() {
             className="group mt-10 flex max-w-md items-start gap-3 border-l border-accent/50 pl-4 text-sm text-soft transition-colors duration-300 hover:text-fg"
           >
             <span>
-              <span className="font-mono text-xs uppercase tracking-wider text-accent">Built · ModelBridge SDK</span>
+              <span className="font-mono text-xs uppercase tracking-wider text-accent">
+                {release.published ? `Published on PyPI · ModelBridge SDK${release.version ? ` v${release.version}` : ""}` : "Built · ModelBridge SDK"}
+              </span>
               <span className="mt-1 block">
                 An async Python client for a multi-provider LLM gateway, with streaming and retries.
               </span>

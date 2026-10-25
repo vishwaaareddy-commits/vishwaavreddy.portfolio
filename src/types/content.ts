@@ -1,4 +1,5 @@
 export type ProjectStatus =
+  | "Published"
   | "Shipped"
   | "Delivered"
   | "Built"
@@ -25,7 +26,8 @@ export interface CaseStudy {
   outcome: string;
   /** Present only when a public, verified artefact exists. */
   evidence?: EvidenceLink;
-  evidenceNote: string;
+  /** One short line, only where it is true (e.g. confidential client work). */
+  evidenceNote?: string;
 }
 
 export interface Build {

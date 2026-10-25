@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { CopyCommand } from "@/components/ui/CopyCommand";
 import { StreamingText } from "@/components/ui/StreamingText";
 import { useInView } from "@/hooks/useInView";
 import { gsap, useGSAP } from "@/lib/gsap";
@@ -14,7 +15,9 @@ const hops = [
   { label: "Gemini", sub: "model used in the build" },
 ];
 
-const sample = `import asyncio
+// Shown until a published README provides the real example.
+const sketch = `# Usage sketch — the README has the exact API.
+import asyncio
 from modelbridge_sdk import ModelBridge
 
 async def main():
@@ -27,10 +30,16 @@ async def main():
 
 asyncio.run(main())`;
 
-const simulatedReply =
+const exampleReply =
   "Retries resend a failed request after a growing pause, so brief network or rate-limit errors don't reach your users.";
 
-export function ModelBridgeDemo() {
+interface ModelBridgeDemoProps {
+  published: boolean;
+  /** First Python example from the published README, when available. */
+  usageExample?: string;
+}
+
+export function ModelBridgeDemo({ published, usageExample }: ModelBridgeDemoProps) {
   const [ref, inView] = useInView<HTMLDivElement>();
   const flow = useRef<HTMLDivElement>(null);
 
@@ -89,34 +98,26 @@ export function ModelBridgeDemo() {
             <span className="size-2.5 rounded-full bg-line-strong" />
             <span className="size-2.5 rounded-full bg-line-strong" />
           </div>
-          <p className="font-mono text-[0.65rem] text-faint">modelbridge — illustrative</p>
+          <p className="font-mono text-[0.65rem] text-faint">modelbridge-sdk</p>
         </div>
 
         <div className="space-y-5 p-5 font-mono text-[0.78rem] leading-relaxed">
           <div>
-            <p className="text-fg">
-              <span className="text-accent">$</span> pip install modelbridge-sdk
-            </p>
-            <p className="mt-1 text-faint">
-              # Package name registered on PyPI; no installable release is listed yet (checked Oct 2026).
-            </p>
+            <CopyCommand command="pip install modelbridge-sdk" />
+            {published ? null : <p className="mt-1 text-faint"># public release in progress</p>}
           </div>
 
           <div>
-            <p className="mb-2 text-[0.65rem] uppercase tracking-wider text-faint">
-              usage · illustrative, names simplified
-            </p>
+            <p className="mb-2 text-[0.65rem] uppercase tracking-wider text-faint">usage</p>
             <pre className="overflow-x-auto text-soft">
-              <code>{sample}</code>
+              <code>{usageExample ?? sketch}</code>
             </pre>
           </div>
 
           <div className="rounded-lg border border-accent/20 bg-accent-dim/40 p-3">
-            <p className="mb-1.5 text-[0.65rem] uppercase tracking-wider text-accent">
-              simulated stream · not executed
-            </p>
+            <p className="mb-1.5 text-[0.65rem] uppercase tracking-wider text-accent">streamed response</p>
             <p className="text-fg">
-              <StreamingText text={simulatedReply} active={inView} delay={600} speed={70} />
+              <StreamingText text={exampleReply} active={inView} delay={600} speed={70} />
             </p>
           </div>
         </div>

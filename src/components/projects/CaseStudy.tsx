@@ -1,5 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
+import { MediaFrame } from "@/components/ui/MediaFrame";
 import { Reveal } from "@/components/ui/Reveal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { CaseStudy as CaseStudyData } from "@/types/content";
@@ -11,9 +12,19 @@ interface CaseStudyProps {
   /** "split" puts text beside the visual; "stacked" gives the visual full width. */
   layout?: "split" | "stacked";
   reverse?: boolean;
+  /** Screenshot or recording; falls back to a designed panel if the file is missing. */
+  media?: { src: string; alt: string };
+  /** Extra actions under the text, e.g. PyPI links. */
+  actions?: ReactNode;
 }
 
-export function CaseStudy({ study, visual, layout = "split", reverse = false }: CaseStudyProps) {
+export function CaseStudy({ study, visual, layout = "split", reverse = false, media, actions }: CaseStudyProps) {
+  const visualBlock = (
+    <div className="space-y-5">
+      {media ? <MediaFrame src={media.src} alt={media.alt} label={study.title} /> : null}
+      {visual}
+    </div>
+  );
   const text = (
     <div className={layout === "split" ? "lg:col-span-5" : "grid grid-cols-1 gap-10 lg:col-span-12 lg:grid-cols-12"}>
       <div data-reveal className={layout === "stacked" ? "lg:col-span-5" : undefined}>
@@ -52,6 +63,7 @@ export function CaseStudy({ study, visual, layout = "split", reverse = false }: 
           ))}
         </div>
 
+        {study.evidence || study.evidenceNote ? (
         <p className="mt-6 text-xs leading-relaxed text-faint">
           {study.evidence ? (
             <a
@@ -64,12 +76,11 @@ export function CaseStudy({ study, visual, layout = "split", reverse = false }: 
               <ArrowUpRight className="size-3.5" aria-hidden />
             </a>
           ) : (
-            <>
-              <span className="font-mono uppercase tracking-wider text-soft">Evidence · </span>
-              {study.evidenceNote}
-            </>
+            study.evidenceNote
           )}
         </p>
+        ) : null}
+        {actions}
       </div>
     </div>
   );
@@ -86,12 +97,12 @@ export function CaseStudy({ study, visual, layout = "split", reverse = false }: 
       {layout === "split" ? (
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10">
           <div className={reverse ? "lg:order-2 lg:col-span-5" : "lg:col-span-5"}>{text}</div>
-          <div data-reveal className={reverse ? "lg:order-1 lg:col-span-7" : "lg:col-span-7"}>{visual}</div>
+          <div data-reveal className={reverse ? "lg:order-1 lg:col-span-7" : "lg:col-span-7"}>{visualBlock}</div>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-12">
           {text}
-          <div data-reveal>{visual}</div>
+          <div data-reveal>{visualBlock}</div>
         </div>
       )}
     </Reveal>

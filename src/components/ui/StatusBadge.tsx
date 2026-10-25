@@ -1,6 +1,7 @@
 import type { ProjectStatus } from "@/types/content";
 
 const tone: Record<ProjectStatus, string> = {
+  Published: "border-accent/60 bg-accent-dim text-accent",
   Shipped: "border-accent/40 text-accent",
   Delivered: "border-accent/40 text-accent",
   Built: "border-accent/40 text-accent",

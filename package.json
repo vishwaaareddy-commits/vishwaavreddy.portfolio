@@ -4,10 +4,14 @@
   "private": true,
   "description": "Portfolio of Vishwaa Reddy, Applied AI Engineer.",
   "scripts": {
+    "media": "node scripts/media-manifest.mjs",
+    "predev": "npm run media",
     "dev": "next dev",
+    "prebuild": "npm run media",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "pretypecheck": "npm run media",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

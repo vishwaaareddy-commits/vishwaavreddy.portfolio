@@ -9,7 +9,7 @@ export const profile = {
   location: "Mumbai, Maharashtra, India",
   email: "vishwaavreddy@gmail.com",
   resume: "/documents/vishwaa-reddy-resume.pdf",
-  siteUrl: "https://vr-portfolio-theta.vercel.app",
+  siteUrl: "https://vishwaavreddy-portfolio.vercel.app",
   links: {
     github: "https://github.com/vishwaaareddy-commits",
     linkedin: "https://www.linkedin.com/in/vishwaa-reddy-065000407",
