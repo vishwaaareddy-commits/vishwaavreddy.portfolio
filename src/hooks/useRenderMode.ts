@@ -16,9 +16,11 @@ export function useRenderMode(webglFailed: boolean): RenderMode {
   const hydrated = useSyncExternalStore(subscribeNoop, () => true, () => false);
   const wide = useMediaQuery("(min-width: 1024px)", false);
   const reduced = useReducedMotion();
-  // hasWebGL is cached after its first call, so this snapshot is stable.
-  const webgl = useSyncExternalStore(subscribeNoop, hasWebGL, () => false);
+  const eligible = wide && !reduced;
+  // Probe only when 3D could actually be used: creating a context is costly on
+  // phones. hasWebGL is cached after its first call, so the snapshot is stable.
+  const webgl = useSyncExternalStore(subscribeNoop, () => eligible && hasWebGL(), () => false);
 
   if (!hydrated) return "pending";
-  return wide && !reduced && webgl && !webglFailed ? "3d" : "2d";
+  return eligible && webgl && !webglFailed ? "3d" : "2d";
 }
