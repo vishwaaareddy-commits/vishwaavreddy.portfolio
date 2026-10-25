@@ -11,7 +11,7 @@ interface RevealProps extends HTMLAttributes<HTMLElement> {
 }
 
 /**
- * Fades and lifts every `[data-reveal]` descendant into place once, as the
+ * Lifts every `[data-reveal]` descendant into place once, as the
  * block scrolls into view. Content is fully visible without JavaScript and
  * with reduced motion.
  */
@@ -24,8 +24,9 @@ export function Reveal({ children, as: Tag = "div", stagger = 0.08, ...rest }: R
       mm.add("(prefers-reduced-motion: no-preference)", () => {
         const items = gsap.utils.toArray<HTMLElement>("[data-reveal]", root.current);
         if (!items.length) return;
+        // Never start below 0.4: a missed trigger must not leave text unreadable.
         gsap.from(items, {
-          opacity: 0,
+          opacity: 0.4,
           y: 28,
           duration: 0.6,
           ease: "power3.out",

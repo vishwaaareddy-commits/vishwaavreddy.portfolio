@@ -1,4 +1,5 @@
 import { Footer } from "@/components/layout/Footer";
+import { HashScroll } from "@/components/layout/HashScroll";
 import { Header } from "@/components/layout/Header";
 import { About } from "@/components/sections/About";
 import { Archive } from "@/components/sections/Archive";
@@ -31,6 +32,7 @@ export default async function Home() {
   return (
     <>
       <Header />
+      <HashScroll />
       <main id="main">
         <Hero release={release} />
         <ProofStrip />

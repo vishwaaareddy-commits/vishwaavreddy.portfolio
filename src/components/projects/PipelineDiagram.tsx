@@ -40,7 +40,7 @@ export function PipelineDiagram({ title, steps, caption }: PipelineDiagramProps)
         stages.forEach((stage, i) => {
           tl.fromTo(
             stage,
-            { opacity: 0.28 },
+            { opacity: 0.45 },
             { opacity: 1, duration: 0.5, ease: "power1.out" },
             i,
           ).fromTo(
