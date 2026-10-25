@@ -83,7 +83,7 @@ export function ModelBridgeChapter({ status, statusNote, usageExample, endSlot }
           tl.from("[data-mb-end]", { opacity: 0.4, y: 24, duration: 0.08 }, 0.9);
         }}
       >
-        <div className="relative z-10 mx-auto w-full max-w-7xl px-6 md:pl-24 md:pr-10 xl:px-8">
+        <div className="shell relative z-10">
           <div className="max-w-xl">
             <p className="eyebrow flex items-center gap-3">
               <span className="text-accent">003</span>

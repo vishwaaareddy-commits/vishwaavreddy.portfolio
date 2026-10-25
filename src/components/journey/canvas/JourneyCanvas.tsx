@@ -6,10 +6,11 @@ import { Bloom, ChromaticAberration, EffectComposer, Noise, Vignette } from "@re
 import { BlendFunction } from "postprocessing";
 import { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
-import { useJourney } from "@/store/journey";
+import { chapterVisibility, useJourney } from "@/store/journey";
 import { Core } from "./Core";
-import { envelope } from "./keyframes";
+import { FinaleScene } from "./FinaleScene";
 import { ModelBridgeScene } from "./ModelBridgeScene";
+import { OcrScene } from "./OcrScene";
 
 interface JourneyCanvasProps {
   mobile: boolean;
@@ -26,7 +27,8 @@ function CameraRig({ mobile, still }: JourneyCanvasProps) {
     const { camera, pointer, clock } = state;
     const baseZ = mobile ? 10.5 : 8;
     // Push in during the hero (t 1→1.9), ease back out for the work intro.
-    const push = still ? 0 : envelope(t, 1.05, 1.85, 2.0, 2.6);
+    // Push in through the hero, ease back out as it ends.
+    const push = still ? 0 : Math.min(1, chapterVisibility(t, 1, 0.6, 0.25) * 1.2);
     const drift = still ? 0 : Math.sin(clock.elapsedTime * 0.12) * 0.15;
     const px = still || mobile ? 0 : pointer.x * 0.35;
     const py = still || mobile ? 0 : pointer.y * 0.22;
@@ -90,6 +92,9 @@ export default function JourneyCanvas({ mobile, still }: JourneyCanvasProps) {
       <Stars radius={70} depth={45} count={mobile ? 500 : 1400} factor={4.5} saturation={0} fade speed={still ? 0 : 0.5} />
       <Core mobile={mobile} still={still} />
       {still ? null : <ModelBridgeScene mobile={mobile} anchor={mobile ? [-0.55, 2.75, 0] : [0.5, 0, 0]} />}
+      {/* Desktop-only scenes; phones and reduced motion get the CSS versions. */}
+      {still || mobile ? null : <OcrScene />}
+      {still || mobile ? null : <FinaleScene />}
       {degraded || still ? null : <Effects mobile={mobile} />}
     </Canvas>
   );

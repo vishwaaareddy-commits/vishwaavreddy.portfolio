@@ -3,8 +3,7 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { chapterProgress, labelRegistry, useJourney } from "@/store/journey";
-import { envelope } from "./keyframes";
+import { chapterProgress, chapterVisibility, labelRegistry, useJourney } from "@/store/journey";
 
 const ACCENT = new THREE.Color("#3be3f5");
 const CHAPTER = 3;
@@ -79,8 +78,16 @@ export function ModelBridgeScene({ mobile, anchor }: { mobile: boolean; anchor: 
     const { t } = useJourney.getState();
     const g = group.current;
     if (!g) return;
-    const vis = envelope(t, 2.85, 3.05, 3.92, 4.12);
-    g.visible = vis > 0.001;
+    // Exactly 0 outside chapter 03; exits over the last 18% of the pin.
+    const vis = chapterVisibility(t, CHAPTER, 0.08, 0.18);
+    g.visible = vis > 0;
+    if (!g.visible) {
+      for (const id of Object.keys(NODES)) {
+        const el = labelRegistry.get(id);
+        if (el) el.style.display = "none";
+      }
+      return;
+    }
     const p = chapterProgress(t, CHAPTER);
 
     // Tubes draw on from the SDK outward.
@@ -129,6 +136,7 @@ export function ModelBridgeScene({ mobile, anchor }: { mobile: boolean; anchor: 
       const crowded = mobile && (id === "mb-app" || RESOURCES.includes(id));
       const shown = crowded ? 0 : id === "mb-sdk" || RESOURCES.includes(id) ? fanGrow : grow;
       el.style.transform = `translate3d(${((world.x * 0.5 + 0.5) * size.width).toFixed(1)}px, ${((-world.y * 0.5 + 0.5) * size.height).toFixed(1)}px, 0) translate(-50%, 16px)`;
+      el.style.display = "";
       el.style.opacity = String(vis * shown);
     }
   });

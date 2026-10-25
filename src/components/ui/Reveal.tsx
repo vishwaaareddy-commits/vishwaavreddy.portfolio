@@ -12,8 +12,8 @@ interface RevealProps extends HTMLAttributes<HTMLElement> {
 
 /**
  * Lifts every `[data-reveal]` descendant into place once, as the
- * block scrolls into view. Content is fully visible without JavaScript and
- * with reduced motion.
+ * block scrolls into view. Content is fully visible without JavaScript, with
+ * reduced motion and on phones.
  */
 export function Reveal({ children, as: Tag = "div", stagger = 0.08, ...rest }: RevealProps) {
   const root = useRef<HTMLElement>(null);
@@ -21,7 +21,9 @@ export function Reveal({ children, as: Tag = "div", stagger = 0.08, ...rest }: R
   useGSAP(
     () => {
       const mm = gsap.matchMedia();
-      mm.add("(prefers-reduced-motion: no-preference)", () => {
+      // Desktop only: on phones each reveal is another ScrollTrigger to measure
+      // during load for little visual gain, so content simply renders in place.
+      mm.add("(prefers-reduced-motion: no-preference) and (min-width: 768px)", () => {
         const items = gsap.utils.toArray<HTMLElement>("[data-reveal]", root.current);
         if (!items.length) return;
         // Never start below 0.4: a missed trigger must not leave text unreadable.

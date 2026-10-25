@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { getLenis } from "@/components/journey/SmoothScroll";
 import { ScrollTrigger } from "@/lib/gsap";
 
-const HEADER_OFFSET = 80;
+const HEADER_OFFSET = 88;
 
 /**
  * Direct links such as /#contact can land early when fonts, pin spacers or

@@ -36,12 +36,14 @@ export function MediaFrame({
   priority,
   className = "",
 }: MediaFrameProps) {
+  const exists = present.has(src);
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl border border-line bg-ink-2 ${className}`}
-      style={{ aspectRatio: aspect }}
+      // Missing assets collapse to a compact frame instead of a large empty panel.
+      className={`relative overflow-hidden rounded-2xl border border-line bg-ink-2 ${exists ? "" : "w-full max-w-xs"} ${className}`}
+      style={{ aspectRatio: exists ? aspect : "16 / 9" }}
     >
-      {present.has(src) ? (
+      {exists ? (
         <Image
           src={src}
           alt={alt}
@@ -62,8 +64,8 @@ export function MediaFrame({
               <span key={corner} className={`absolute size-4 border-accent/60 ${corner}`} />
             ),
           )}
-          <p className="absolute bottom-5 left-6 font-mono text-[0.65rem] uppercase tracking-[0.2em] text-faint">
-            {label}
+          <p className="absolute bottom-3 left-4 right-4 truncate font-mono text-[0.6rem] uppercase tracking-[0.18em] text-faint">
+            {label} · capture pending
           </p>
         </div>
       )}

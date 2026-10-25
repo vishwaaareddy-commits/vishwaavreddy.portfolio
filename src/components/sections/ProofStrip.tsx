@@ -26,7 +26,7 @@ const proof = [
 export function ProofStrip() {
   return (
     <section aria-label="At a glance" className="border-y border-line bg-ink-2">
-      <dl className="mx-auto grid max-w-7xl grid-cols-2 px-5 md:px-8 lg:grid-cols-4">
+      <dl className="shell grid grid-cols-2 lg:grid-cols-4">
         {proof.map((item, i) => (
           <div
             key={item.label}

@@ -6,10 +6,10 @@ import { timeline } from "@/data/experience";
 export function Experience() {
   return (
     <section id="experience" aria-labelledby="experience-title" className="border-t border-line">
-      <div className="mx-auto max-w-7xl px-5 py-24 md:px-8 md:py-32">
+      <div className="shell py-24 md:py-32">
         <SectionHeader
           id="experience-title"
-          index="04"
+          index="009"
           eyebrow="Experience"
           title="From data science to applied AI."
           intro="Dates follow the certificates where they exist."

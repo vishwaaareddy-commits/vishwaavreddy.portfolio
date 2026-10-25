@@ -3,27 +3,34 @@
 import dynamic from "next/dynamic";
 import { useSyncExternalStore } from "react";
 import { useMediaQuery, useReducedMotion } from "@/hooks/useMediaQuery";
-import { hasWebGL } from "@/lib/webgl";
+import { hasWebGL2 } from "@/lib/webgl";
+import { StaticCore } from "./StaticCore";
 
-// Three.js, drei and postprocessing load only in the browser, after the HTML.
+// Three.js, R3F, drei and postprocessing: only requested when this renders.
 const JourneyCanvas = dynamic(() => import("./canvas/JourneyCanvas"), { ssr: false });
 
 const subscribeNoop = () => () => {};
 
 /**
- * Fixed backdrop for the whole page. Hero text never waits on it: the
- * canvas mounts after hydration, and a CSS glow stands in without WebGL.
+ * Fixed backdrop for the whole page. The 3D canvas is used only on screens
+ * ≥768px with WebGL2 and motion allowed; the decision is made before the
+ * dynamic import renders, so phones never download the 3D chunk. Everyone
+ * else gets the pre-rendered Core image.
  */
 export function JourneyStage() {
   const hydrated = useSyncExternalStore(subscribeNoop, () => true, () => false);
   const mobile = useMediaQuery("(max-width: 767px)", false);
   const reduced = useReducedMotion();
-  const webgl = useSyncExternalStore(subscribeNoop, () => hydrated && hasWebGL(), () => false);
+  const canUse3D = useSyncExternalStore(
+    subscribeNoop,
+    () => !window.matchMedia("(max-width: 767px)").matches && !reduced && hasWebGL2(),
+    () => false,
+  );
 
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 bg-ink">
+    <div aria-hidden className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-ink">
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_45%_40%_at_72%_45%,rgba(30,110,130,0.22),transparent_70%)]" />
-      {hydrated && webgl ? <JourneyCanvas mobile={mobile} still={reduced} /> : null}
+      {!hydrated ? null : canUse3D ? <JourneyCanvas mobile={false} still={false} /> : <StaticCore mobile={mobile} still={reduced} />}
     </div>
   );
 }

@@ -50,7 +50,7 @@
 
   section[id],
   article[id] {
-    scroll-margin-top: 5rem;
+    scroll-margin-top: 5.5rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -68,6 +68,25 @@
 }
 
 @layer components {
+  /* Content column inside the frame: always clear of the left rail. */
+  .shell {
+    margin-inline: auto;
+    width: 100%;
+    max-width: 80rem;
+    padding-inline: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .shell {
+      padding-left: 6rem;
+      padding-right: 2.5rem;
+    }
+  }
+  @media (min-width: 1536px) {
+    .shell {
+      padding-inline: 2rem;
+    }
+  }
+
   .eyebrow {
     font-family: var(--font-mono);
     font-size: 0.72rem;
@@ -115,24 +134,16 @@
     background-size: 100% 1px;
   }
 
-  /* Hero headline assembles from depth when the Core ignites. Letters never
-     start fully transparent, so the headline paints immediately. */
+  /* Hero headline overlay: letters assemble from depth when the Core ignites.
+     The real heading underneath is what paints first (LCP). */
   .hero-title {
     perspective: 900px;
   }
   .hero-letter {
     display: inline-block;
     transform-origin: 50% 100%;
-    transition:
-      opacity 700ms var(--ease-out-quint),
-      transform 900ms var(--ease-out-quint),
-      filter 700ms var(--ease-out-quint);
-    transition-delay: calc(var(--i) * 32ms + 60ms);
-  }
-  [data-assembled="false"] .hero-letter {
-    opacity: 0.18;
-    filter: blur(8px);
-    transform: translate3d(0, 0.3em, -140px) rotateX(-40deg);
+    animation: letter-in 900ms var(--ease-out-quint) backwards;
+    animation-delay: calc(var(--i) * 32ms + 60ms);
   }
 
   /* Crosshair cursor (fine pointers only). */
@@ -177,6 +188,47 @@
   .journey-cursor[data-state="text"],
   .journey-cursor[data-state="hidden"] {
     opacity: 0;
+  }
+}
+
+/* Image Core (phones, reduced motion, no WebGL2): soft glow and a slow float. */
+.static-core img {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 18px rgb(59 227 245 / 0.35));
+  -webkit-mask-image: radial-gradient(circle, black 58%, transparent 72%);
+  mask-image: radial-gradient(circle, black 58%, transparent 72%);
+}
+.static-core-float {
+  animation: core-float 6s ease-in-out infinite;
+}
+@keyframes core-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-4%) rotate(6deg);
+  }
+}
+
+/* Phone finale: a slow, dim orbit behind the contact heading. */
+.finale-ring {
+  position: absolute;
+  left: 50%;
+  top: 7.5rem;
+  width: 22rem;
+  height: 7rem;
+  margin-left: -11rem;
+  border-radius: 9999px;
+  border: 1px dashed rgb(59 227 245 / 0.35);
+  opacity: 0.15;
+  pointer-events: none;
+  animation: finale-orbit 24s linear infinite;
+}
+@keyframes finale-orbit {
+  to {
+    transform: rotate(360deg);
   }
 }
 
@@ -255,6 +307,14 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
+  }
+}
+
+@keyframes letter-in {
+  from {
+    opacity: 0.18;
+    filter: blur(8px);
+    transform: translate3d(0, 0.3em, -140px) rotateX(-40deg);
   }
 }
 
