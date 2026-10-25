@@ -16,28 +16,47 @@ interface CaseStudyProps {
   media?: { src: string; alt: string };
   /** Extra actions under the text, e.g. PyPI links. */
   actions?: ReactNode;
+  /**
+   * Details-only mode for a study whose title and status already appear in its
+   * journey chapter: drops the header and labels the article by that heading.
+   */
+  continuesFrom?: { id: string; labelledBy: string };
 }
 
-export function CaseStudy({ study, visual, layout = "split", reverse = false, media, actions }: CaseStudyProps) {
+export function CaseStudy({
+  study,
+  visual,
+  layout = "split",
+  reverse = false,
+  media,
+  actions,
+  continuesFrom,
+}: CaseStudyProps) {
   const visualBlock = (
     <div className="space-y-5">
-      {media ? <MediaFrame src={media.src} alt={media.alt} label={study.title} /> : null}
+      {media ? <MediaFrame src={media.src} alt={media.alt} label={study.title} className="notch" /> : null}
       {visual}
     </div>
   );
   const text = (
     <div className={layout === "split" ? "lg:col-span-5" : "grid grid-cols-1 gap-10 lg:col-span-12 lg:grid-cols-12"}>
       <div data-reveal className={layout === "stacked" ? "lg:col-span-5" : undefined}>
-        <p className="eyebrow">
-          <span className="text-accent">{study.index}</span> · {study.kicker} · {study.org}
-        </p>
-        <h3 id={`${study.id}-title`} className="mt-4 font-display text-3xl font-semibold tracking-tight md:text-4xl">{study.title}</h3>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <StatusBadge status={study.status} />
-        </div>
-        <p className="mt-3 text-sm leading-relaxed text-faint">{study.statusNote}</p>
+        {continuesFrom ? null : (
+          <>
+            <p className="eyebrow">
+              <span className="text-accent">{study.index}</span> · {study.kicker} · {study.org}
+            </p>
+            <h3 id={`${study.id}-title`} className="mt-4 font-display text-3xl font-semibold tracking-tight md:text-4xl">
+              {study.title}
+            </h3>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <StatusBadge status={study.status} />
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-faint">{study.statusNote}</p>
+          </>
+        )}
 
-        <h4 className="eyebrow mt-8">Problem</h4>
+        <h4 className={`eyebrow ${continuesFrom ? "" : "mt-8"}`}>Problem</h4>
         <p className="mt-2 leading-relaxed text-soft">{study.problem}</p>
       </div>
 
@@ -88,8 +107,8 @@ export function CaseStudy({ study, visual, layout = "split", reverse = false, me
   return (
     <Reveal
       as="article"
-      id={study.id}
-      aria-labelledby={`${study.id}-title`}
+      id={continuesFrom?.id ?? study.id}
+      aria-labelledby={continuesFrom?.labelledBy ?? `${study.id}-title`}
       className="relative border-t border-line py-16 md:py-24"
       stagger={0.12}
     >
