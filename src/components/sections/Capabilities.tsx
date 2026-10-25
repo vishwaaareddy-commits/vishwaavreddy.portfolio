@@ -11,20 +11,19 @@ const titles: Record<string, string> = Object.fromEntries(
 export function Capabilities() {
   return (
     <section id="capabilities" aria-labelledby="capabilities-title" className="border-t border-line bg-ink-2">
-      <div className="mx-auto max-w-7xl px-5 py-24 md:px-8 md:py-32">
+      <div className="shell py-24 md:py-32">
         <SectionHeader
           id="capabilities-title"
-          index="03"
+          index="008"
           eyebrow="Capabilities"
           title="Tools listed only where they did real work."
           intro="Every group links to the projects that use it. Academic-only tools live in the archive further down."
         />
         <Reveal className="grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-2">
-          {capabilities.map((group, i) => (
+          {capabilities.map((group) => (
             <TiltCard key={group.id} max={0} className="bg-ink-2">
             <div data-reveal className="relative h-full p-6 md:p-8">
-              <p className="font-mono text-xs text-accent">{String(i + 1).padStart(2, "0")}</p>
-              <h3 className="mt-2 font-display text-xl font-semibold tracking-tight">{group.title}</h3>
+              <h3 className="font-display text-xl font-semibold tracking-tight">{group.title}</h3>
               <ul className="mt-5 space-y-2">
                 {group.items.map((item) => (
                   <li key={item} className="text-soft">

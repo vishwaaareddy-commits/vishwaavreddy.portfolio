@@ -46,10 +46,10 @@ export function MoreBuilds() {
   const [oms, ...rest] = builds;
   return (
     <section id="builds" aria-labelledby="builds-title" className="border-t border-line">
-      <div className="mx-auto max-w-7xl px-5 py-24 md:px-8 md:py-32">
+      <div className="shell py-24 md:py-32">
         <SectionHeader
           id="builds-title"
-          index="02"
+          index="007"
           eyebrow="More builds"
           title="Production work in progress, labelled honestly."
           intro="Client and team systems from my current role. Private code stays private — these entries describe the architecture and my part in it."

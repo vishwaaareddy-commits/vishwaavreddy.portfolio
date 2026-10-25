@@ -9,8 +9,8 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 export function About() {
   return (
     <section id="about" aria-labelledby="about-title" className="border-t border-line">
-      <div className="mx-auto max-w-7xl px-5 py-24 md:px-8 md:py-32">
-        <SectionHeader id="about-title" index="06" eyebrow="About" title="Turning models into systems people use." />
+      <div className="shell py-24 md:py-32">
+        <SectionHeader id="about-title" index="010" eyebrow="About" title="Turning models into systems people use." />
         <Reveal className="grid grid-cols-1 gap-12 md:grid-cols-12">
           <div data-reveal className="md:col-span-4 md:col-start-1">
             <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-line">

@@ -7,6 +7,7 @@ import { join } from "node:path";
 const optional = [
   "/work/modelbridge.png",
   "/work/esports-ocr.gif",
+  "/work/esports-ocr.mp4",
   "/work/automation.png",
   "/about/photo.jpg",
 ];

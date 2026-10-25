@@ -14,11 +14,14 @@ const links = [
 
 export function Contact() {
   return (
-    <section id="contact" aria-labelledby="contact-title" className="border-t border-line bg-ink-2">
-      <div className="mx-auto max-w-7xl px-5 py-24 md:px-8 md:py-32">
+    // Transparent on desktop so the 3D finale behind it shows through.
+    <section id="contact" aria-labelledby="contact-title" className="relative overflow-hidden border-t border-line bg-ink-2 md:bg-transparent">
+      {/* Phone version of the finale: a dim CSS ring behind the heading. */}
+      <div aria-hidden className="finale-ring md:hidden" />
+      <div className="shell relative py-24 md:py-32">
         <SectionHeader
           id="contact-title"
-          index="07"
+          index="011"
           eyebrow="Contact"
           title="Have a system that should use AI?"
           intro={`I'm based in ${profile.location}. Email is the fastest way to reach me.`}

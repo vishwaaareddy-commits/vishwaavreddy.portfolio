@@ -16,6 +16,8 @@ const serif = Instrument_Serif({
 });
 const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
+  // Not needed for first paint; leave bandwidth to the heading fonts.
+  preload: false,
   variable: "--font-jetbrains",
   display: "swap",
 });

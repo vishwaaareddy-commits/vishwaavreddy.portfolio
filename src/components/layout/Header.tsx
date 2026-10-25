@@ -19,15 +19,7 @@ const scrambleLabel = (e: MouseEvent<HTMLAnchorElement>) => {
 
 export function Header() {
   const [open, setOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
   const current = activeNav(useJourney((s) => s.chapter));
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 24);
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -37,12 +29,14 @@ export function Header() {
   }, [open]);
 
   return (
-    <header
-      className={`fixed inset-x-2.5 top-2.5 z-50 transition-colors duration-500 md:inset-x-[18px] md:top-[18px] ${
-        scrolled || open ? "border-b border-line bg-ink/85 backdrop-blur-md" : "border-b border-transparent"
-      }`}
-    >
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 md:pl-16 md:pr-6 xl:px-8">
+    // Opaque band from the very top of the viewport through the nav, so no
+    // content shows above or behind it; it redraws the frame lines it covers.
+    <header className="fixed inset-x-0 top-0 z-50 bg-ink pt-2.5 md:pt-[18px]">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-2.5 bottom-0 top-2.5 border border-line md:inset-x-[18px] md:top-[18px]"
+      />
+      <div className="shell relative flex h-16 items-center justify-between">
         <a href="#top" className="flex items-baseline gap-2 font-display text-sm font-semibold tracking-tight">
           <span>Vishwaa Reddy</span>
           <span className="hidden font-mono text-[0.68rem] font-normal text-faint sm:inline">/ applied ai</span>

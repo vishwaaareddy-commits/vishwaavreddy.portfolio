@@ -49,7 +49,7 @@ export function Preloader() {
   if (skip || removed) return null;
 
   return (
-    <div data-preloader aria-hidden className="preloader fixed inset-0 z-[90] flex flex-col items-center justify-center bg-ink">
+    <div data-preloader aria-hidden className="preloader fixed inset-0 z-[90] flex flex-col items-center justify-center bg-ink/[0.92]">
       <p className="font-mono text-[0.68rem] uppercase tracking-[0.3em] text-faint">Initializing inference…</p>
       <span className="preloader-count mt-6 font-mono text-6xl tabular-nums text-fg md:text-7xl" />
       <div className="relative mt-8 h-px w-[min(60vw,420px)] bg-line">

@@ -9,7 +9,7 @@ import type { ArchiveProject, Build, CaseStudy } from "@/types/content";
 export const caseStudies: CaseStudy[] = [
   {
     id: "modelbridge",
-    index: "01",
+    index: "003",
     title: "ModelBridge Python SDK",
     org: "Colab Platforms",
     kicker: "LLM tooling",
@@ -29,7 +29,7 @@ export const caseStudies: CaseStudy[] = [
   },
   {
     id: "esports-ocr",
-    index: "02",
+    index: "004",
     title: "BGMI esports OCR",
     org: "Colab Platforms",
     kicker: "Computer vision",
@@ -51,7 +51,7 @@ export const caseStudies: CaseStudy[] = [
   },
   {
     id: "takehealth-qa",
-    index: "03",
+    index: "005",
     title: "TakeHealth QA",
     org: "TakeHealth",
     kicker: "Quality & safety",
@@ -73,7 +73,7 @@ export const caseStudies: CaseStudy[] = [
   },
   {
     id: "automation",
-    index: "04",
+    index: "006",
     title: "WhatsApp & AI calling automation",
     org: "Avatar India",
     kicker: "Automation agents",

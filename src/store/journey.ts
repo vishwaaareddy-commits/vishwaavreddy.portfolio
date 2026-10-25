@@ -28,8 +28,11 @@ interface JourneyState {
   t: number;
   /** Set when the preloader finishes; the Core ignites. */
   ignited: boolean;
+  /** Contact finale progress (0→1) as the contact heading scrolls in. */
+  finale: number;
   setChapter: (chapter: number) => void;
   setT: (t: number) => void;
+  setFinale: (finale: number) => void;
   ignite: () => void;
 }
 
@@ -37,10 +40,25 @@ export const useJourney = create<JourneyState>((set) => ({
   chapter: 1,
   t: 1,
   ignited: false,
+  finale: 0,
   setChapter: (chapter) => set((s) => (s.chapter === chapter ? s : { chapter })),
   setT: (t) => set({ t }),
+  setFinale: (finale) => set({ finale }),
   ignite: () => set({ ignited: true }),
 }));
+
+/**
+ * Visibility of a chapter scene: fades in over the first `fadeIn` of the
+ * chapter and out over the last `fadeOut`. Exactly 0 outside the chapter,
+ * so a scene can never linger into the next one.
+ */
+export function chapterVisibility(t: number, index: number, fadeIn = 0.1, fadeOut = 0.18) {
+  if (t <= index || t >= index + 1) return 0;
+  const p = t - index;
+  const up = Math.min(1, p / fadeIn);
+  const down = Math.min(1, (1 - p) / fadeOut);
+  return Math.max(0, Math.min(up, down));
+}
 
 /** Progress (0→1) of one chapter given the journey position. */
 export function chapterProgress(t: number, index: number) {

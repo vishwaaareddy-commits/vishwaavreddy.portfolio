@@ -4,13 +4,11 @@ import { archive } from "@/data/projects";
 export function Archive() {
   return (
     <section aria-labelledby="archive-title" className="border-t border-line bg-ink-2">
-      <div className="mx-auto max-w-7xl px-5 py-16 md:px-8 md:py-20">
+      <div className="shell py-16 md:py-20">
         <details className="group">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
             <div>
-              <p className="eyebrow">
-                <span className="text-accent">05</span> — Archive
-              </p>
+              <p className="eyebrow">Archive</p>
               <h2 id="archive-title" className="mt-3 font-display text-2xl font-semibold tracking-tight md:text-3xl">
                 Academic & personal projects
               </h2>

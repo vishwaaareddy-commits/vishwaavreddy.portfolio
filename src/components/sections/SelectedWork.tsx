@@ -1,9 +1,9 @@
 import { ModelBridgeChapter } from "@/components/journey/chapters/ModelBridgeChapter";
+import { OcrChapter } from "@/components/journey/chapters/OcrChapter";
 import { WorkIntroChapter } from "@/components/journey/chapters/WorkIntroChapter";
 import { AutomationDemo } from "@/components/projects/AutomationDemo";
 import { CaseStudy } from "@/components/projects/CaseStudy";
 import { ModelBridgeLinks } from "@/components/projects/ModelBridgeLinks";
-import { OcrDemo } from "@/components/projects/OcrDemo";
 import { QaDemo } from "@/components/projects/QaDemo";
 import { caseStudies } from "@/data/projects";
 import type { ModelBridgeRelease } from "@/lib/pypi";
@@ -33,18 +33,21 @@ export function SelectedWork({ release }: { release: ModelBridgeRelease }) {
         usageExample={release.usageExample}
         endSlot={<ModelBridgeLinks release={release} />}
       />
-      <div className="relative z-10 mx-auto max-w-7xl px-5 md:pl-24 md:pr-10 xl:px-8">
+      <div className="shell relative z-10">
         <CaseStudy
           study={modelbridge}
           visual={null}
           media={{ src: "/work/modelbridge.png", alt: "ModelBridge SDK in use" }}
           continuesFrom={{ id: "modelbridge-details", labelledBy: "modelbridge-title" }}
         />
+      </div>
+      <OcrChapter study={byId["esports-ocr"]} />
+      <div className="shell relative z-10">
         <CaseStudy
           study={byId["esports-ocr"]}
-          visual={<OcrDemo />}
-          layout="stacked"
+          visual={null}
           media={{ src: "/work/esports-ocr.gif", alt: "BGMI OCR reading a kill feed" }}
+          continuesFrom={{ id: "esports-ocr-details", labelledBy: "esports-ocr-title" }}
         />
         <CaseStudy study={byId["takehealth-qa"]} visual={<QaDemo />} reverse />
         <CaseStudy

@@ -3,7 +3,7 @@
 import Lenis from "lenis";
 import { useEffect } from "react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
-import { prefersReducedMotion } from "@/lib/motion";
+import { isMobileViewport, prefersReducedMotion } from "@/lib/motion";
 
 let lenis: Lenis | null = null;
 
@@ -14,12 +14,13 @@ export function getLenis() {
 
 /**
  * Lenis inertia scrolling, driven by GSAP's ticker so pinned, scrubbed
- * ScrollTriggers stay in lock-step. Disabled for reduced motion.
+ * ScrollTriggers stay in lock-step. Off for reduced motion and on phones.
  */
 export function SmoothScroll() {
   useEffect(() => {
-    if (prefersReducedMotion()) return;
-    const instance = new Lenis({ lerp: 0.1, smoothWheel: true, anchors: { offset: -80 } });
+    // Phones keep native scrolling: lighter, and what touch users expect.
+    if (prefersReducedMotion() || isMobileViewport()) return;
+    const instance = new Lenis({ lerp: 0.1, smoothWheel: true, anchors: { offset: -88 } });
     lenis = instance;
     instance.on("scroll", ScrollTrigger.update);
     const raf = (time: number) => instance.raf(time * 1000);
