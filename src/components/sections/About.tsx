@@ -1,5 +1,9 @@
 import Image from "next/image";
+import { hasMedia } from "@/components/ui/MediaFrame";
 import { Reveal } from "@/components/ui/Reveal";
+
+// Prefer the dedicated portrait once it has been added to /public/about.
+const photo = hasMedia("/about/photo.jpg") ? "/about/photo.jpg" : "/images/profile.jpg";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 
 export function About() {
@@ -11,7 +15,7 @@ export function About() {
           <div data-reveal className="md:col-span-4 md:col-start-1">
             <div className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-line">
               <Image
-                src="/images/profile.jpg"
+                src={photo}
                 alt="Portrait of Vishwaa Reddy"
                 fill
                 sizes="(min-width: 768px) 30vw, 100vw"

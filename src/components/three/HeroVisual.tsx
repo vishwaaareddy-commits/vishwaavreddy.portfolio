@@ -179,9 +179,6 @@ export function HeroVisual() {
           })}
         </ul>
 
-        <p className="pointer-events-none absolute bottom-3 right-4 hidden font-mono text-[0.6rem] text-faint sm:block">
-          Illustrative · no live model calls
-        </p>
       </div>
 
       <figcaption

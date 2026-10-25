@@ -24,7 +24,6 @@ function PhoneMock({ mode, phase }: { mode: Mode; phase: Phase }) {
     <div className="relative mx-auto w-full max-w-[260px] rounded-[1.6rem] border border-line-strong bg-[#0a0d12] p-3">
       <div className="mb-3 flex items-center justify-between px-1">
         <p className="font-display text-sm text-fg">Glucose log</p>
-        <span className="font-mono text-[0.55rem] text-faint">schematic</span>
       </div>
       <ul className="space-y-2">
         {Array.from({ length: ROWS }, (_, i) => {
@@ -168,9 +167,6 @@ export function QaDemo() {
             )}
           </div>
         </div>
-        <p className="mt-6 font-mono text-[0.62rem] text-faint">
-          Schematic recreation — not the TakeHealth interface. No patient data is shown.
-        </p>
       </div>
     </div>
   );

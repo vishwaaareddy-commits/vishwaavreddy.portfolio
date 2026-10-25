@@ -100,7 +100,7 @@ export const networkStages = [
 
 export const networkOverview = {
   label: "Inference network",
-  role: "Illustrative system map",
+  role: "System map",
   detail:
     "Requests enter on the left, pass through the integration layer I build, reach a model or business service, and leave as a shipped feature.",
   shows: "Select any node to trace its path through the system.",
