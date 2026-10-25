@@ -93,15 +93,12 @@ export function OcrDemo() {
                   <span className={`rounded px-0.5 transition-colors duration-500 ${at("ocr") ? "outline outline-1 outline-warn/80" : ""}`}>
                     {at("match") ? line.targetClean : line.target}
                   </span>
-                  <span className="sr-only">{`Schematic feed line ${i + 1}`}</span>
+                  <span className="sr-only">{`Example feed line ${i + 1}`}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <p className="absolute bottom-3 right-3 rounded bg-black/50 px-2 py-1 font-mono text-[0.58rem] text-soft">
-            Schematic — not real match footage
-          </p>
         </div>
 
         {/* Stage controls */}
@@ -142,7 +139,7 @@ export function OcrDemo() {
       {/* Structured result panel */}
       <div className="lg:col-span-4">
         <div className="h-full rounded-2xl border border-line bg-[#05070a] p-5 font-mono text-[0.72rem] leading-relaxed">
-          <p className="mb-3 text-[0.62rem] uppercase tracking-wider text-faint">result · schematic</p>
+          <p className="mb-3 text-[0.62rem] uppercase tracking-wider text-faint">structured result</p>
           {at("row") ? (
             <pre className="whitespace-pre-wrap text-soft">
               {feed

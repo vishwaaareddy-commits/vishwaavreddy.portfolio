@@ -1,4 +1,5 @@
 export type ProjectStatus =
+  | "Published"
   | "Shipped"
   | "Delivered"
   | "Built"
@@ -25,7 +26,8 @@ export interface CaseStudy {
   outcome: string;
   /** Present only when a public, verified artefact exists. */
   evidence?: EvidenceLink;
-  evidenceNote: string;
+  /** One short line, only where it is true (e.g. confidential client work). */
+  evidenceNote?: string;
 }
 
 export interface Build {
@@ -64,19 +66,4 @@ export interface TimelineEntry {
   badge?: string;
   certificate?: EvidenceLink;
   current?: boolean;
-}
-
-export type NetworkNodeKind = "input" | "hub" | "sdk" | "vision" | "automation" | "data" | "output";
-
-export interface NetworkNode {
-  id: string;
-  label: string;
-  /** Short technical role shown under the title in the detail panel. */
-  role: string;
-  detail: string;
-  /** What the scene demonstrates when this node is selected. */
-  shows: string;
-  link: EvidenceLink;
-  position: [number, number, number];
-  kind: NetworkNodeKind;
 }

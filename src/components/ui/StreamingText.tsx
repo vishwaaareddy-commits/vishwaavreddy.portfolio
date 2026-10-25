@@ -37,10 +37,15 @@ export function StreamingText({ text, speed = 55, delay = 0, className, active =
 
   const done = reduced || count >= tokens.length;
 
+  // The invisible full copy reserves the final height from the first paint,
+  // so streaming never pushes later content down (which broke hash links).
   return (
-    <span className={className}>
+    <span className={`grid ${className ?? ""}`}>
       <span className="sr-only">{text}</span>
-      <span aria-hidden className={done ? undefined : "stream-caret"}>
+      <span aria-hidden className="invisible col-start-1 row-start-1">
+        {text}
+      </span>
+      <span aria-hidden className={`col-start-1 row-start-1 ${done ? "" : "stream-caret"}`}>
         {done ? text : tokens.slice(0, count).join("")}
       </span>
     </span>

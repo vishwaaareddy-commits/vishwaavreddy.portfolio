@@ -1,5 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
+import { MediaFrame } from "@/components/ui/MediaFrame";
 import { Reveal } from "@/components/ui/Reveal";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import type { CaseStudy as CaseStudyData } from "@/types/content";
@@ -11,22 +12,51 @@ interface CaseStudyProps {
   /** "split" puts text beside the visual; "stacked" gives the visual full width. */
   layout?: "split" | "stacked";
   reverse?: boolean;
+  /** Screenshot or recording; falls back to a designed panel if the file is missing. */
+  media?: { src: string; alt: string };
+  /** Extra actions under the text, e.g. PyPI links. */
+  actions?: ReactNode;
+  /**
+   * Details-only mode for a study whose title and status already appear in its
+   * journey chapter: drops the header and labels the article by that heading.
+   */
+  continuesFrom?: { id: string; labelledBy: string };
 }
 
-export function CaseStudy({ study, visual, layout = "split", reverse = false }: CaseStudyProps) {
+export function CaseStudy({
+  study,
+  visual,
+  layout = "split",
+  reverse = false,
+  media,
+  actions,
+  continuesFrom,
+}: CaseStudyProps) {
+  const visualBlock = (
+    <div className="space-y-5">
+      {media ? <MediaFrame src={media.src} alt={media.alt} label={study.title} className="notch" /> : null}
+      {visual}
+    </div>
+  );
   const text = (
     <div className={layout === "split" ? "lg:col-span-5" : "grid grid-cols-1 gap-10 lg:col-span-12 lg:grid-cols-12"}>
       <div data-reveal className={layout === "stacked" ? "lg:col-span-5" : undefined}>
-        <p className="eyebrow">
-          <span className="text-accent">{study.index}</span> · {study.kicker} · {study.org}
-        </p>
-        <h3 id={`${study.id}-title`} className="mt-4 font-display text-3xl font-semibold tracking-tight md:text-4xl">{study.title}</h3>
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <StatusBadge status={study.status} />
-        </div>
-        <p className="mt-3 text-sm leading-relaxed text-faint">{study.statusNote}</p>
+        {continuesFrom ? null : (
+          <>
+            <p className="eyebrow">
+              <span className="text-accent">{study.index}</span> · {study.kicker} · {study.org}
+            </p>
+            <h3 id={`${study.id}-title`} className="mt-4 font-display text-3xl font-semibold tracking-tight md:text-4xl">
+              {study.title}
+            </h3>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <StatusBadge status={study.status} />
+            </div>
+            <p className="mt-3 text-sm leading-relaxed text-faint">{study.statusNote}</p>
+          </>
+        )}
 
-        <h4 className="eyebrow mt-8">Problem</h4>
+        <h4 className={`eyebrow ${continuesFrom ? "" : "mt-8"}`}>Problem</h4>
         <p className="mt-2 leading-relaxed text-soft">{study.problem}</p>
       </div>
 
@@ -52,6 +82,7 @@ export function CaseStudy({ study, visual, layout = "split", reverse = false }: 
           ))}
         </div>
 
+        {study.evidence || study.evidenceNote ? (
         <p className="mt-6 text-xs leading-relaxed text-faint">
           {study.evidence ? (
             <a
@@ -64,12 +95,11 @@ export function CaseStudy({ study, visual, layout = "split", reverse = false }: 
               <ArrowUpRight className="size-3.5" aria-hidden />
             </a>
           ) : (
-            <>
-              <span className="font-mono uppercase tracking-wider text-soft">Evidence · </span>
-              {study.evidenceNote}
-            </>
+            study.evidenceNote
           )}
         </p>
+        ) : null}
+        {actions}
       </div>
     </div>
   );
@@ -77,8 +107,8 @@ export function CaseStudy({ study, visual, layout = "split", reverse = false }: 
   return (
     <Reveal
       as="article"
-      id={study.id}
-      aria-labelledby={`${study.id}-title`}
+      id={continuesFrom?.id ?? study.id}
+      aria-labelledby={continuesFrom?.labelledBy ?? `${study.id}-title`}
       className="relative border-t border-line py-16 md:py-24"
       stagger={0.12}
     >
@@ -86,12 +116,12 @@ export function CaseStudy({ study, visual, layout = "split", reverse = false }: 
       {layout === "split" ? (
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-10">
           <div className={reverse ? "lg:order-2 lg:col-span-5" : "lg:col-span-5"}>{text}</div>
-          <div data-reveal className={reverse ? "lg:order-1 lg:col-span-7" : "lg:col-span-7"}>{visual}</div>
+          <div data-reveal className={reverse ? "lg:order-1 lg:col-span-7" : "lg:col-span-7"}>{visualBlock}</div>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-12">
           {text}
-          <div data-reveal>{visual}</div>
+          <div data-reveal>{visualBlock}</div>
         </div>
       )}
     </Reveal>

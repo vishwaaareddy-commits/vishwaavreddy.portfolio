@@ -4,21 +4,30 @@
   "private": true,
   "description": "Portfolio of Vishwaa Reddy, Applied AI Engineer.",
   "scripts": {
+    "media": "node scripts/media-manifest.mjs",
+    "predev": "npm run media",
     "dev": "next dev",
+    "prebuild": "npm run media",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
+    "pretypecheck": "npm run media",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@gsap/react": "2.1.2",
+    "@react-three/drei": "10.7.9",
     "@react-three/fiber": "9.8.2",
+    "@react-three/postprocessing": "3.2.2",
     "gsap": "3.15.0",
+    "lenis": "1.3.27",
     "lucide-react": "1.61.0",
     "next": "16.4.3",
+    "postprocessing": "6.39.5",
     "react": "19.3.1",
     "react-dom": "19.3.1",
-    "three": "0.186.1"
+    "three": "0.186.1",
+    "zustand": "5.0.16"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "4.3.3",

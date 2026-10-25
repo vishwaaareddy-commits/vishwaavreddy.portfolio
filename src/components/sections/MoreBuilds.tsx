@@ -63,7 +63,6 @@ export function MoreBuilds() {
             <PipelineDiagram
               title="OMS · webhook processing path"
               steps={omsFlow}
-              caption="Reflects the implemented webhook handlers; not a live system view."
             />
           </div>
         </Reveal>

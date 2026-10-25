@@ -24,7 +24,6 @@ export function AutomationDemo() {
       <PipelineDiagram
         title="Payment-triggered WhatsApp flow"
         steps={paymentFlow}
-        caption="Architecture of the delivered workflow — this diagram does not run it."
       />
       <div className="grid gap-5 sm:grid-cols-2">
         {sideFlows.map((flow) => (
