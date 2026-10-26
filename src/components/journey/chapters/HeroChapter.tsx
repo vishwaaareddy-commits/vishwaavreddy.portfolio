@@ -56,7 +56,7 @@ export function HeroChapter({ releaseLabel }: { releaseLabel: string }) {
       }}
     >
       <div className="shell relative z-10">
-        <div className="max-w-2xl">
+        <div data-copy className="max-w-2xl">
           <p data-lift className="inline-flex items-center gap-2 rounded-full border border-line bg-ink/60 px-3 py-1 font-mono text-[0.7rem] text-soft backdrop-blur">
             <span className="size-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(59,227,245,0.9)]" />
             {profile.currentRole}

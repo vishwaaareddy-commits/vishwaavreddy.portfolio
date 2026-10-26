@@ -9,8 +9,6 @@ if (typeof window !== "undefined") {
   // Keep triggers in page order before every refresh, including the automatic
   // load and resize refreshes, so pins are accounted for in everything below.
   ScrollTrigger.addEventListener("refreshInit", () => ScrollTrigger.sort());
-  // DIAGNOSTIC (temporary): mark every refresh.
-  ScrollTrigger.addEventListener("refreshInit", () => performance.mark("st-refresh"));
 }
 
 let pending: ReturnType<typeof setTimeout> | undefined;

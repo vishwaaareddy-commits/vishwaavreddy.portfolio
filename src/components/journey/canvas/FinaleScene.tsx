@@ -4,8 +4,15 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useJourney } from "@/store/journey";
-import { finaleAnchor } from "./keyframes";
 import { screenToWorld } from "./screen";
+
+/** Where the finale burst starts and the ring it settles into, tracked from the contact heading. */
+const finaleAnchor = {
+  above: new THREE.Vector3(),
+  ring: new THREE.Vector3(),
+  ringRadius: 2,
+  active: false,
+};
 
 const COUNT = 2000;
 const smooth = (a: number, b: number, x: number) => THREE.MathUtils.smoothstep(x, a, b);
@@ -33,9 +40,9 @@ const burst = new THREE.Vector3();
 const ring = new THREE.Vector3();
 
 /**
- * Chapter 11 finale: the Core returns above the contact heading, spins up and
- * bursts into particles that settle into a dim ring orbiting behind the
- * heading. The ring stays below 0.2 opacity while the form is on screen.
+ * Chapter 11 finale: particles burst above the contact heading and settle
+ * into a dim ring orbiting behind it. The ring stays below 0.2 opacity
+ * while the form is on screen.
  */
 export function FinaleScene() {
   const points = useRef<THREE.Points>(null);
@@ -81,7 +88,7 @@ export function FinaleScene() {
       return;
     }
 
-    // Track the heading on screen: the Core returns above it, the ring orbits it.
+    // Track the heading on screen: the burst starts above it, the ring orbits it.
     const r = heading.getBoundingClientRect();
     const midY = r.top + r.height / 2;
     screenToWorld(r.left, midY, size, camera, left);

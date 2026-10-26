@@ -52,7 +52,7 @@ export function OcrChapter({ study }: { study: CaseStudy }) {
         }}
       >
         <div className="shell relative z-10 grid w-full grid-cols-1 gap-10 md:grid-cols-12 md:items-center">
-          <div className="md:col-span-5">
+          <div data-copy className="md:col-span-5">
             <p className="eyebrow flex items-center gap-3">
               <span className="text-accent">004</span>
               <span aria-hidden className="h-px w-8 bg-gradient-to-r from-accent/70 to-transparent" />

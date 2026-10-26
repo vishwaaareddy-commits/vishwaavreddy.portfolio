@@ -35,7 +35,7 @@ export function WorkIntroChapter() {
         );
       }}
     >
-      <div className="shell relative z-10">
+      <div data-copy className="shell relative z-10">
         <p className="eyebrow flex items-center gap-3">
           <span className="text-accent">002</span>
           <span aria-hidden className="h-px w-8 bg-gradient-to-r from-accent/70 to-transparent" />

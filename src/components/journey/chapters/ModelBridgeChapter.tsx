@@ -83,8 +83,10 @@ export function ModelBridgeChapter({ status, statusNote, usageExample, endSlot }
           tl.from("[data-mb-end]", { opacity: 0.4, y: 24, duration: 0.08 }, 0.9);
         }}
       >
-        <div className="shell relative z-10">
-          <div className="max-w-xl">
+        <div className="shell relative z-10 grid w-full grid-cols-1 gap-6 md:grid-cols-12 md:items-center md:gap-10">
+          {/* Empty column the 3D gateway diagram is fitted into: it never overlaps the copy. */}
+          <div data-stage="modelbridge" aria-hidden className="h-[22svh] md:order-2 md:col-span-6 md:h-[72vh] lg:col-span-7" />
+          <div data-copy className="max-w-xl md:col-span-6 lg:col-span-5">
             <p className="eyebrow flex items-center gap-3">
               <span className="text-accent">003</span>
               <span aria-hidden className="h-px w-8 bg-gradient-to-r from-accent/70 to-transparent" />

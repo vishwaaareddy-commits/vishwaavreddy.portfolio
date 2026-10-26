@@ -40,7 +40,7 @@ export function CaseStudy({
   );
   const text = (
     <div className={layout === "split" ? "lg:col-span-5" : "grid grid-cols-1 gap-10 lg:col-span-12 lg:grid-cols-12"}>
-      <div data-reveal className={layout === "stacked" ? "lg:col-span-5" : undefined}>
+      <div data-reveal data-copy className={layout === "stacked" ? "lg:col-span-5" : undefined}>
         {continuesFrom ? null : (
           <>
             <p className="eyebrow">
@@ -60,7 +60,7 @@ export function CaseStudy({
         <p className="mt-2 leading-relaxed text-soft">{study.problem}</p>
       </div>
 
-      <div data-reveal className={layout === "stacked" ? "lg:col-span-7" : undefined}>
+      <div data-reveal data-copy className={layout === "stacked" ? "lg:col-span-7" : undefined}>
         <h4 className={`eyebrow ${layout === "stacked" ? "" : "mt-8"}`}>What I built</h4>
         <ul className="mt-3 space-y-2.5">
           {study.contribution.map((item) => (

@@ -4,13 +4,13 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { chapterProgress, chapterVisibility, labelRegistry, useJourney } from "@/store/journey";
+import { fitToStage } from "./stage";
 
 const ACCENT = new THREE.Color("#3be3f5");
 const CHAPTER = 3;
 
-/** Node layout relative to the Core (the SDK) while it acts as the gateway. */
+/** Node layout (local units); the whole diagram is fitted into the chapter's stage column. */
 const NODES: Record<string, [number, number, number]> = {
-  // Kept right of the HTML terminal on desktop.
   "mb-app": [-0.55, -2.35, 0.3],
   "mb-sdk": [0, 0, 0],
   "mb-gateway": [1.5, 0.8, -0.4],
@@ -22,11 +22,19 @@ const NODES: Record<string, [number, number, number]> = {
   "mb-credits": [-0.4, 1.95, -0.5],
 };
 const CHAIN = ["mb-app", "mb-sdk", "mb-gateway", "mb-openrouter", "mb-gemini"];
+/** Bounding box of the diagram plus room for labels under the nodes. */
+const CENTER = new THREE.Vector3(1.625, -0.25, 0);
+const CONTENT = { w: 5.2, h: 5 };
 const RESOURCES = ["mb-chat", "mb-models", "mb-usage", "mb-credits"];
 
 function link(a: THREE.Vector3, b: THREE.Vector3) {
   const dx = (b.x - a.x) * 0.5;
-  return new THREE.CubicBezierCurve3(a, a.clone().add(new THREE.Vector3(dx, 0, 0)), b.clone().sub(new THREE.Vector3(dx, 0, 0)), b);
+  return new THREE.CubicBezierCurve3(
+    a,
+    a.clone().add(new THREE.Vector3(dx, 0, 0)),
+    b.clone().sub(new THREE.Vector3(dx, 0, 0)),
+    b,
+  );
 }
 
 const scratch = new THREE.Vector3();
@@ -34,11 +42,14 @@ const world = new THREE.Vector3();
 const smooth = (x: number) => THREE.MathUtils.smoothstep(x, 0, 1);
 
 /**
- * Chapter 03: the Core becomes the gateway. Tubes grow with scroll, a request
- * packet travels to the model and streamed chunks return.
+ * Chapter 03: the gateway diagram. Tubes grow with scroll, a request packet
+ * travels to the model and streamed chunks return. Fitted to the empty
+ * stage column beside the copy; a label that would leave the stage is hidden.
  */
-export function ModelBridgeScene({ mobile, anchor }: { mobile: boolean; anchor: [number, number, number] }) {
+export function ModelBridgeScene({ mobile }: { mobile: boolean }) {
+  const stage = useRef<THREE.Group>(null);
   const group = useRef<THREE.Group>(null);
+  const labelWidths = useRef(new Map<string, number>());
   const packet = useRef<THREE.Mesh>(null);
   const chunks = useRef<(THREE.Mesh | null)[]>([]);
   // Meshes whose geometry draw range and material opacity change every frame.
@@ -57,18 +68,24 @@ export function ModelBridgeScene({ mobile, anchor }: { mobile: boolean; anchor: 
       chain: chainCurves.map((c) => tube(c, 0.018)),
       fan: RESOURCES.map((id) => tube(link(at("mb-sdk"), at(id)), 0.009)),
       node: new THREE.OctahedronGeometry(0.12, 0),
+      hub: new THREE.OctahedronGeometry(0.26, 0),
       packet: new THREE.SphereGeometry(0.07, 16, 16),
       chunk: new THREE.BoxGeometry(0.12, 0.04, 0.04),
       chainMat: new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0, toneMapped: false }),
       fanMat: new THREE.MeshBasicMaterial({ color: "#5b8fa0", transparent: true, opacity: 0, toneMapped: false }),
       nodeMat: new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0, toneMapped: false }),
-      glowMat: new THREE.MeshBasicMaterial({ color: new THREE.Color("#bff8ff").multiplyScalar(2.2), transparent: true, opacity: 0, toneMapped: false }),
+      glowMat: new THREE.MeshBasicMaterial({
+        color: new THREE.Color("#bff8ff").multiplyScalar(2.2),
+        transparent: true,
+        opacity: 0,
+        toneMapped: false,
+      }),
     };
   }, []);
 
   useEffect(
     () => () => {
-      [...built.chain, ...built.fan, built.node, built.packet, built.chunk].forEach((g) => g.dispose());
+      [...built.chain, ...built.fan, built.node, built.hub, built.packet, built.chunk].forEach((g) => g.dispose());
       [built.chainMat, built.fanMat, built.nodeMat, built.glowMat].forEach((m) => m.dispose());
     },
     [built],
@@ -77,9 +94,14 @@ export function ModelBridgeScene({ mobile, anchor }: { mobile: boolean; anchor: 
   useFrame((state) => {
     const { t } = useJourney.getState();
     const g = group.current;
-    if (!g) return;
+    const outer = stage.current;
+    if (!g || !outer) return;
+    const { camera, size } = state;
     // Exactly 0 outside chapter 03; exits over the last 18% of the pin.
-    const vis = chapterVisibility(t, CHAPTER, 0.08, 0.18);
+    let vis = chapterVisibility(t, CHAPTER, 0.08, 0.18);
+    const fit =
+      vis > 0 ? fitToStage("modelbridge", outer, camera as THREE.PerspectiveCamera, size, CONTENT.w, CONTENT.h) : null;
+    vis = fit?.visible ? vis * fit.opacity : 0;
     g.visible = vis > 0;
     if (!g.visible) {
       for (const id of Object.keys(NODES)) {
@@ -123,8 +145,8 @@ export function ModelBridgeScene({ mobile, anchor }: { mobile: boolean; anchor: 
       chunk.visible = vis > 0.01 && back > 0 && back < 1;
     });
 
-    // Project node positions to place the HTML labels.
-    const { camera, size } = state;
+    // Project node positions to place the HTML labels, kept inside the stage.
+    const rect = fit!.rect!;
     g.updateMatrixWorld();
     for (const [id, local] of Object.entries(NODES)) {
       const el = labelRegistry.get(id);
@@ -135,58 +157,66 @@ export function ModelBridgeScene({ mobile, anchor }: { mobile: boolean; anchor: 
       // Small screens label only the main chain; the fan stays unlabeled.
       const crowded = mobile && (id === "mb-app" || RESOURCES.includes(id));
       const shown = crowded ? 0 : id === "mb-sdk" || RESOURCES.includes(id) ? fanGrow : grow;
-      el.style.transform = `translate3d(${((world.x * 0.5 + 0.5) * size.width).toFixed(1)}px, ${((-world.y * 0.5 + 0.5) * size.height).toFixed(1)}px, 0) translate(-50%, 16px)`;
-      el.style.display = "";
+      const x = (world.x * 0.5 + 0.5) * size.width;
+      const y = (-world.y * 0.5 + 0.5) * size.height;
+      let w = labelWidths.current.get(id);
+      if (w === undefined || w === 0) {
+        el.style.display = "";
+        w = el.offsetWidth;
+        labelWidths.current.set(id, w);
+      }
+      const inside = x - w / 2 >= rect.left && x + w / 2 <= rect.right && y >= rect.top && y + 36 <= rect.bottom;
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, 16px)`;
+      el.style.display = inside ? "" : "none";
       el.style.opacity = String(vis * shown);
     }
   });
 
   return (
-    <group ref={group} position={anchor} scale={mobile ? 0.5 : 1}>
-      {built.chain.map((geo, i) => (
-        <mesh
-          key={`c${i}`}
-          ref={(m) => {
-            chainMeshes.current[i] = m;
-          }}
-          geometry={geo}
-          material={built.chainMat}
-        />
-      ))}
-      {built.fan.map((geo, i) => (
-        <mesh
-          key={`f${i}`}
-          ref={(m) => {
-            fanMeshes.current[i] = m;
-          }}
-          geometry={geo}
-          material={built.fanMat}
-        />
-      ))}
-      {Object.entries(NODES)
-        .filter(([id]) => id !== "mb-sdk")
-        .map(([id, p], i) => (
+    <group ref={stage}>
+      <group ref={group} position={[-CENTER.x, -CENTER.y, 0]}>
+        {built.chain.map((geo, i) => (
+          <mesh
+            key={`c${i}`}
+            ref={(m) => {
+              chainMeshes.current[i] = m;
+            }}
+            geometry={geo}
+            material={built.chainMat}
+          />
+        ))}
+        {built.fan.map((geo, i) => (
+          <mesh
+            key={`f${i}`}
+            ref={(m) => {
+              fanMeshes.current[i] = m;
+            }}
+            geometry={geo}
+            material={built.fanMat}
+          />
+        ))}
+        {Object.entries(NODES).map(([id, p], i) => (
           <mesh
             key={id}
             ref={i === 0 ? nodeMesh : undefined}
             position={p}
-            geometry={built.node}
+            geometry={id === "mb-sdk" ? built.hub : built.node}
             material={built.nodeMat}
           />
         ))}
-      <mesh ref={packet} geometry={built.packet} material={built.glowMat} visible={false} />
-      {Array.from({ length: 5 }, (_, i) => (
-        <mesh
-          key={`k${i}`}
-          ref={(m) => {
-            chunks.current[i] = m;
-          }}
-          geometry={built.chunk}
-          material={built.glowMat}
-          visible={false}
-        />
-      ))}
+        <mesh ref={packet} geometry={built.packet} material={built.glowMat} visible={false} />
+        {Array.from({ length: 5 }, (_, i) => (
+          <mesh
+            key={`k${i}`}
+            ref={(m) => {
+              chunks.current[i] = m;
+            }}
+            geometry={built.chunk}
+            material={built.glowMat}
+            visible={false}
+          />
+        ))}
+      </group>
     </group>
   );
 }
-

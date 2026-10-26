@@ -1,16 +1,17 @@
 "use client";
 
-import { AdaptiveDpr, PerformanceMonitor, Stars } from "@react-three/drei";
+import { AdaptiveDpr, PerformanceMonitor } from "@react-three/drei";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, EffectComposer, Noise, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
-import { chapterVisibility, useJourney } from "@/store/journey";
-import { Core } from "./Core";
+import { pointer, useJourney, type Tier } from "@/store/journey";
 import { FinaleScene } from "./FinaleScene";
 import { ModelBridgeScene } from "./ModelBridgeScene";
+import { NeuralField } from "./neural/NeuralField";
 import { OcrScene } from "./OcrScene";
+import { disposeCopyMask, updateCopyMask } from "./stage";
 
 interface JourneyCanvasProps {
   mobile: boolean;
@@ -18,26 +19,75 @@ interface JourneyCanvasProps {
   still: boolean;
 }
 
-const look = new THREE.Vector3();
+interface CameraKey {
+  t: number;
+  pos: [number, number, number];
+  look: [number, number, number];
+}
 
-/** Camera: hero push toward the Core, pointer parallax, gentle idle drift. */
+/**
+ * Camera path through the field (centred at z −6, input layer at x −8,
+ * output at x +8). Hero: close on the input layers, pulling back to reveal
+ * the whole network; then it travels along the layers with the wavefront.
+ */
+const KEYS: CameraKey[] = [
+  { t: 1.0, pos: [-5.4, 0.5, 2.2], look: [-4.6, 0, -6] },
+  { t: 1.95, pos: [0, 1.1, 9], look: [0, 0, -6] },
+  { t: 2.6, pos: [3.6, 2.4, 7.2], look: [0.5, 0, -6] },
+  { t: 3.2, pos: [-4.5, 0.6, 3], look: [-2, 0, -6] },
+  { t: 11.0, pos: [4.5, -0.6, 3], look: [7, 0, -6] },
+  { t: 11.9, pos: [7, 0, 4.5], look: [8, 0, -6] },
+];
+/** Narrow screens see less width: stand further back. */
+const MOBILE_PULLBACK = 5;
+
+const keyPos = new THREE.Vector3();
+const keyLook = new THREE.Vector3();
+const look = new THREE.Vector3();
+const a = new THREE.Vector3();
+const b = new THREE.Vector3();
+
+function sampleCamera(t: number, mobile: boolean) {
+  let i = 0;
+  while (i < KEYS.length - 2 && t > KEYS[i + 1].t) i += 1;
+  const k0 = KEYS[i];
+  const k1 = KEYS[i + 1];
+  const k = THREE.MathUtils.smoothstep(t, k0.t, k1.t);
+  keyPos.lerpVectors(a.fromArray(k0.pos), b.fromArray(k1.pos), k);
+  keyLook.lerpVectors(a.fromArray(k0.look), b.fromArray(k1.look), k);
+  if (mobile) keyPos.z += MOBILE_PULLBACK;
+}
+
+/** Camera: scroll keyframes, pointer parallax, slow idle drift. */
 function CameraRig({ mobile, still }: JourneyCanvasProps) {
   useFrame((state, dt) => {
     const { t } = useJourney.getState();
-    const { camera, pointer, clock } = state;
-    const baseZ = mobile ? 10.5 : 8;
-    // Push in during the hero (t 1→1.9), ease back out for the work intro.
-    // Push in through the hero, ease back out as it ends.
-    const push = still ? 0 : Math.min(1, chapterVisibility(t, 1, 0.6, 0.25) * 1.2);
-    const drift = still ? 0 : Math.sin(clock.elapsedTime * 0.12) * 0.15;
-    const px = still || mobile ? 0 : pointer.x * 0.35;
-    const py = still || mobile ? 0 : pointer.y * 0.22;
-    camera.position.x = THREE.MathUtils.damp(camera.position.x, px + drift, 3, dt);
-    camera.position.y = THREE.MathUtils.damp(camera.position.y, py, 3, dt);
-    camera.position.z = THREE.MathUtils.damp(camera.position.z, baseZ - push * 1.6, 3, dt);
-    look.set(0, 0, 0);
+    const { camera, clock } = state;
+    sampleCamera(still ? 2.6 : t, mobile);
+    const time = clock.elapsedTime;
+    const drift = still ? 0 : 1;
+    keyPos.x += Math.sin(time * 0.11) * 0.25 * drift + (still || mobile ? 0 : pointer.x * 0.3);
+    keyPos.y += Math.cos(time * 0.09) * 0.18 * drift + (still || mobile ? 0 : pointer.y * 0.2);
+    if (still) {
+      camera.position.copy(keyPos);
+      look.copy(keyLook);
+    } else {
+      camera.position.x = THREE.MathUtils.damp(camera.position.x, keyPos.x, 3, dt);
+      camera.position.y = THREE.MathUtils.damp(camera.position.y, keyPos.y, 3, dt);
+      camera.position.z = THREE.MathUtils.damp(camera.position.z, keyPos.z, 3, dt);
+      look.x = THREE.MathUtils.damp(look.x, keyLook.x, 3, dt);
+      look.y = THREE.MathUtils.damp(look.y, keyLook.y, 3, dt);
+      look.z = THREE.MathUtils.damp(look.z, keyLook.z, 3, dt);
+    }
     camera.lookAt(look);
   });
+  return null;
+}
+
+/** Feeds on-screen copy rects to the shaders so the field fades behind text. */
+function MaskSync() {
+  useEffect(() => disposeCopyMask, []);
+  useFrame(({ size, viewport }) => updateCopyMask(size, viewport.dpr, performance.now()));
   return null;
 }
 
@@ -63,10 +113,17 @@ function Effects({ mobile }: { mobile: boolean }) {
   );
 }
 
+const LOWER: Record<Tier, Tier> = { high: "medium", medium: "low", low: "low" };
+
 /** One fixed full-screen scene behind all HTML for the whole journey. */
 export default function JourneyCanvas({ mobile, still }: JourneyCanvasProps) {
-  const [degraded, setDegraded] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const tier = useJourney((s) => s.tier);
+
+  // Phones start one tier down; the monitor only ever steps down from there.
+  useEffect(() => {
+    if (mobile) useJourney.getState().setTier("medium");
+  }, [mobile]);
 
   // Pause rendering while the tab is in the background.
   useEffect(() => {
@@ -75,27 +132,51 @@ export default function JourneyCanvas({ mobile, still }: JourneyCanvasProps) {
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
+  // The canvas sits behind the page, so track the pointer on window.
+  useEffect(() => {
+    if (still) return;
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
+      pointer.y = -(e.clientY / window.innerHeight) * 2 + 1;
+      pointer.active = true;
+    };
+    const onLeave = () => (pointer.active = false);
+    window.addEventListener("pointermove", onMove, { passive: true });
+    document.addEventListener("pointerleave", onLeave);
+    return () => {
+      window.removeEventListener("pointermove", onMove);
+      document.removeEventListener("pointerleave", onLeave);
+      pointer.active = false;
+    };
+  }, [still]);
+
+  const stepDown = () => {
+    const { tier: current, setTier } = useJourney.getState();
+    setTier(LOWER[current]);
+  };
+
   return (
     <Canvas
       className="!fixed inset-0"
       dpr={[1, mobile ? 1.25 : 1.5]}
       frameloop={hidden ? "never" : still ? "demand" : "always"}
-      camera={{ position: [0, 0, mobile ? 10.5 : 8], fov: 40, near: 0.1, far: 120 }}
+      camera={{ position: [0, 0, 8], fov: 40, near: 0.1, far: 120 }}
       gl={{ antialias: false, powerPreference: "high-performance", stencil: false }}
       aria-hidden
       tabIndex={-1}
     >
       <color attach="background" args={["#07090d"]} />
-      <PerformanceMonitor onDecline={() => setDegraded(true)} flipflops={2} onFallback={() => setDegraded(true)} />
+      <PerformanceMonitor onDecline={stepDown} flipflops={2} onFallback={() => useJourney.getState().setTier("low")} />
       <AdaptiveDpr pixelated={false} />
       <CameraRig mobile={mobile} still={still} />
-      <Stars radius={70} depth={45} count={mobile ? 500 : 1400} factor={4.5} saturation={0} fade speed={still ? 0 : 0.5} />
-      <Core mobile={mobile} still={still} />
-      {still ? null : <ModelBridgeScene mobile={mobile} anchor={mobile ? [-0.55, 2.75, 0] : [0.5, 0, 0]} />}
+      <MaskSync />
+      <NeuralField tier={tier} still={still} />
+      {still ? null : <ModelBridgeScene mobile={mobile} />}
       {/* Desktop-only scenes; phones and reduced motion get the CSS versions. */}
       {still || mobile ? null : <OcrScene />}
       {still || mobile ? null : <FinaleScene />}
-      {degraded || still ? null : <Effects mobile={mobile} />}
+      {tier === "low" || still ? null : <Effects mobile={mobile} />}
     </Canvas>
   );
 }

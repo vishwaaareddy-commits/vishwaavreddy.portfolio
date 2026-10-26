@@ -6,7 +6,7 @@ import { timeline } from "@/data/experience";
 export function Experience() {
   return (
     <section id="experience" aria-labelledby="experience-title" className="border-t border-line">
-      <div className="shell py-24 md:py-32">
+      <div data-copy className="shell py-24 md:py-32">
         <SectionHeader
           id="experience-title"
           index="009"

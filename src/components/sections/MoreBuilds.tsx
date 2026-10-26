@@ -46,7 +46,7 @@ export function MoreBuilds() {
   const [oms, ...rest] = builds;
   return (
     <section id="builds" aria-labelledby="builds-title" className="border-t border-line">
-      <div className="shell py-24 md:py-32">
+      <div data-copy className="shell py-24 md:py-32">
         <SectionHeader
           id="builds-title"
           index="007"

@@ -191,27 +191,6 @@
   }
 }
 
-/* Image Core (phones, reduced motion, no WebGL2): soft glow and a slow float. */
-.static-core img {
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 0 18px rgb(59 227 245 / 0.35));
-  -webkit-mask-image: radial-gradient(circle, black 58%, transparent 72%);
-  mask-image: radial-gradient(circle, black 58%, transparent 72%);
-}
-.static-core-float {
-  animation: core-float 6s ease-in-out infinite;
-}
-@keyframes core-float {
-  0%,
-  100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-4%) rotate(6deg);
-  }
-}
-
 /* Phone finale: a slow, dim orbit behind the contact heading. */
 .finale-ring {
   position: absolute;
