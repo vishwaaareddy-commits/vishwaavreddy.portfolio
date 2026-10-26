@@ -20,6 +20,8 @@ interface ChapterProps {
   length?: number;
   /** Set false when the mobile layout is taller than one screen and must scroll normally. */
   pinOnMobile?: boolean;
+  /** ScrollTrigger start/end when not pinned (default: section top at top → bottom at top). */
+  unpinnedRange?: [string, string];
   /** Adds scrubbed tweens to the chapter timeline (0 → 1 over the pin). */
   build?: (tl: gsap.core.Timeline, ctx: ChapterContext) => void;
   className?: string;
@@ -37,6 +39,7 @@ export function Chapter({
   pin = false,
   length = 2,
   pinOnMobile = true,
+  unpinnedRange = ["top top", "bottom top"],
   build,
   className = "",
   ...rest
@@ -72,8 +75,8 @@ export function Chapter({
         defaults: { ease: "none" },
         scrollTrigger: {
           trigger: el,
-          start: "top top",
-          end: pinned ? () => `+=${window.innerHeight * len}` : "bottom top",
+          start: pinned ? "top top" : unpinnedRange[0],
+          end: pinned ? () => `+=${window.innerHeight * len}` : unpinnedRange[1],
           pin: pinned,
           scrub: 1,
           invalidateOnRefresh: true,
