@@ -10,6 +10,7 @@ import { heroTraining } from "@/components/journey/training/protocol";
 import { pointer, useJourney, type Tier } from "@/store/journey";
 import { FinaleScene } from "./FinaleScene";
 import { ModelBridgeScene } from "./ModelBridgeScene";
+import { EmbeddingCloud } from "./neural/EmbeddingCloud";
 import { HeroNet } from "./neural/HeroNet";
 import { NeuralField } from "./neural/NeuralField";
 import { OcrScene } from "./OcrScene";
@@ -202,6 +203,7 @@ export default function JourneyCanvas({ mobile, still }: JourneyCanvasProps) {
       <MaskSync />
       <NeuralField tier={tier} still={still} />
       <HeroNet still={still} />
+      {still ? null : <EmbeddingCloud tier={tier} />}
       {still ? null : <ModelBridgeScene mobile={mobile} />}
       {/* Desktop-only scenes; phones and reduced motion get the CSS versions. */}
       {still || mobile ? null : <OcrScene />}

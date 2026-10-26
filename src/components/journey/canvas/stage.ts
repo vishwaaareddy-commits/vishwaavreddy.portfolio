@@ -5,6 +5,8 @@ import * as THREE from "three";
  * (`data-stage="name"`) in its own grid column, so 3D content can never be
  * drawn over copy at any viewport size. Copy blocks (`data-copy`) are passed
  * to the background shaders as soft masks so the field fades behind text.
+ * Stages are marked `data-copy` too, so the field steps back behind each
+ * chapter's own visual instead of competing with it.
  */
 
 export interface StageFit {
