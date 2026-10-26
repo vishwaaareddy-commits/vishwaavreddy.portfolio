@@ -62,7 +62,7 @@ export function NeuralField({ tier, still }: { tier: Tier; still: boolean }) {
         out[1] = r * Math.cos(a);
         out[2] = r * Math.sin(a) * 0.85;
       },
-      { keep: tier === "low" ? 0.4 : 0.26 },
+      { keep: tier === "low" ? 0.3 : 0.18 },
     );
     const weights = edgeWeights(mlp, graph, new Float32Array(graph.edgeCount));
     // One seeded input vector per chapter: the model sees different data as you scroll.
@@ -149,7 +149,7 @@ export function NeuralField({ tier, still }: { tier: Tier; still: boolean }) {
         edgeAlpha={0.85}
         fogNear={9}
         fogFar={26}
-        maskFloor={0.15}
+        maskFloor={0.1}
       />
     </group>
   );

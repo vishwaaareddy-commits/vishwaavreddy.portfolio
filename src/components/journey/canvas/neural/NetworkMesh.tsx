@@ -61,7 +61,7 @@ const FRAG_COMMON = /* glsl */ `
   ${MASK_GLSL}
   float fog(float viewZ) {
     // Far layers fade into the dark; anything right at the lens fades too.
-    return (1.0 - smoothstep(uFog.x, uFog.y, viewZ)) * smoothstep(0.6, 2.0, viewZ);
+    return (1.0 - smoothstep(uFog.x, uFog.y, viewZ)) * smoothstep(1.5, 4.5, viewZ);
   }
 `;
 
@@ -108,7 +108,7 @@ const neuronFrag = /* glsl */ `
     // Dark glassy body, fresnel rim, emissive core that runs white-hot at peak.
     vec3 color = tint * (0.05 + 0.55 * fres) * (0.35 + 0.65 * vIgnite);
     color += tint * a * (0.9 + 0.8 * vWave);
-    color += uHot * pow(a, 3.0) * 1.6;
+    color += uHot * pow(a, 6.0) * 1.2;
     // Fade colour as well as alpha: emissive values run above 1 (HDR), so
     // alpha alone would leave hot neurons glowing through copy.
     float vis = fog(vViewZ) * copyMask(uMaskFloor) * uAlpha;

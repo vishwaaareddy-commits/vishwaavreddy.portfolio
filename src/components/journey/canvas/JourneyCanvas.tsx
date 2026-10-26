@@ -1,14 +1,16 @@
 "use client";
 
 import { AdaptiveDpr, PerformanceMonitor } from "@react-three/drei";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, EffectComposer, Noise, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import { useEffect, useMemo, useState } from "react";
 import * as THREE from "three";
+import { heroTraining } from "@/components/journey/training/protocol";
 import { pointer, useJourney, type Tier } from "@/store/journey";
 import { FinaleScene } from "./FinaleScene";
 import { ModelBridgeScene } from "./ModelBridgeScene";
+import { HeroNet } from "./neural/HeroNet";
 import { NeuralField } from "./neural/NeuralField";
 import { OcrScene } from "./OcrScene";
 import { disposeCopyMask, updateCopyMask } from "./stage";
@@ -31,7 +33,7 @@ interface CameraKey {
  * the whole network; then it travels along the layers with the wavefront.
  */
 const KEYS: CameraKey[] = [
-  { t: 1.0, pos: [-5.4, 0.5, 2.2], look: [-4.6, 0, -6] },
+  { t: 1.0, pos: [-5.4, 0.5, 3.6], look: [-4.6, 0, -6] },
   { t: 1.95, pos: [0, 1.1, 9], look: [0, 0, -6] },
   { t: 2.6, pos: [3.6, 2.4, 7.2], look: [0.5, 0, -6] },
   { t: 3.2, pos: [-4.5, 0.6, 3], look: [-2, 0, -6] },
@@ -88,6 +90,32 @@ function CameraRig({ mobile, still }: JourneyCanvasProps) {
 function MaskSync() {
   useEffect(() => disposeCopyMask, []);
   useFrame(({ size, viewport }) => updateCopyMask(size, viewport.dpr, performance.now()));
+  return null;
+}
+
+/**
+ * Reduced motion renders on demand: one frame per scroll or resize (so
+ * stage-fitted visuals follow their columns) and when training finishes.
+ */
+function StillInvalidator() {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => {
+    const onChange = () => invalidate();
+    let seen = heroTraining.version;
+    const poll = setInterval(() => {
+      if (heroTraining.version !== seen) {
+        seen = heroTraining.version;
+        invalidate();
+      }
+    }, 250);
+    window.addEventListener("scroll", onChange, { passive: true });
+    window.addEventListener("resize", onChange);
+    return () => {
+      clearInterval(poll);
+      window.removeEventListener("scroll", onChange);
+      window.removeEventListener("resize", onChange);
+    };
+  }, [invalidate]);
   return null;
 }
 
@@ -170,8 +198,10 @@ export default function JourneyCanvas({ mobile, still }: JourneyCanvasProps) {
       <PerformanceMonitor onDecline={stepDown} flipflops={2} onFallback={() => useJourney.getState().setTier("low")} />
       <AdaptiveDpr pixelated={false} />
       <CameraRig mobile={mobile} still={still} />
+      {still ? <StillInvalidator /> : null}
       <MaskSync />
       <NeuralField tier={tier} still={still} />
+      <HeroNet still={still} />
       {still ? null : <ModelBridgeScene mobile={mobile} />}
       {/* Desktop-only scenes; phones and reduced motion get the CSS versions. */}
       {still || mobile ? null : <OcrScene />}

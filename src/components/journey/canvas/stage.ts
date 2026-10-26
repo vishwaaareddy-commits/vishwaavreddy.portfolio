@@ -78,7 +78,7 @@ export const maskUniforms = {
   uDpr: { value: 1 },
 };
 
-/** GLSL: 1 in the open, falling to `floor` inside any copy rect (soft 48px edge). */
+/** GLSL: 1 in the open, falling to `floor` inside any copy rect (soft edge from 40px outside to 48px inside). */
 export const MASK_GLSL = /* glsl */ `
   uniform vec4 uMask[${MASK_MAX}];
   uniform int uMaskCount;
@@ -92,7 +92,7 @@ export const MASK_GLSL = /* glsl */ `
       vec4 r = uMask[i];
       vec2 d = max(r.xy - p, p - r.zw);
       float dist = max(d.x, d.y);
-      inside = max(inside, 1.0 - smoothstep(-48.0, 24.0, dist));
+      inside = max(inside, 1.0 - smoothstep(-48.0, 40.0, dist));
     }
     return mix(1.0, floorValue, inside);
   }

@@ -134,16 +134,16 @@
     background-size: 100% 1px;
   }
 
-  /* Hero headline overlay: letters assemble from depth when the Core ignites.
-     The real heading underneath is what paints first (LCP). */
-  .hero-title {
-    perspective: 900px;
-  }
-  .hero-letter {
+  /* Hero headline overlay: the caret that trails generated tokens. */
+  .token-caret {
     display: inline-block;
-    transform-origin: 50% 100%;
-    animation: letter-in 900ms var(--ease-out-quint) backwards;
-    animation-delay: calc(var(--i) * 32ms + 60ms);
+    width: 0.08em;
+    height: 0.8em;
+    margin-left: 0.06em;
+    vertical-align: -0.02em;
+    background: var(--color-accent);
+    box-shadow: 0 0 12px rgb(59 227 245 / 0.8);
+    animation: caret 0.9s steps(2) infinite;
   }
 
   /* Crosshair cursor (fine pointers only). */
@@ -261,14 +261,6 @@
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
-  }
-}
-
-@keyframes letter-in {
-  from {
-    opacity: 0.18;
-    filter: blur(8px);
-    transform: translate3d(0, 0.3em, -140px) rotateX(-40deg);
   }
 }
 
