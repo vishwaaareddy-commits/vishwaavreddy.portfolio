@@ -154,6 +154,11 @@ export default function JourneyCanvas({ mobile, still }: JourneyCanvasProps) {
     if (mobile) useJourney.getState().setTier("medium");
   }, [mobile]);
 
+  // Exposed for QA (DevTools / automated checks): which tier is active.
+  useEffect(() => {
+    document.documentElement.dataset.gpuTier = tier;
+  }, [tier]);
+
   // Pause rendering while the tab is in the background.
   useEffect(() => {
     const onVisibility = () => setHidden(document.visibilityState === "hidden");
