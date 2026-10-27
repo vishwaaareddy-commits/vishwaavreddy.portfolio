@@ -9,11 +9,13 @@ import * as THREE from "three";
 import { heroTraining } from "@/components/journey/training/protocol";
 import { pointer, useJourney, type Tier } from "@/store/journey";
 import { FinaleScene } from "./FinaleScene";
-import { ModelBridgeScene } from "./ModelBridgeScene";
 import { EmbeddingCloud } from "./neural/EmbeddingCloud";
 import { HeroNet } from "./neural/HeroNet";
 import { NeuralField } from "./neural/NeuralField";
-import { OcrScene } from "./OcrScene";
+import { AttentionScene } from "./scenes/AttentionScene";
+import { ConvScene } from "./scenes/ConvScene";
+import { FlowGraph } from "./scenes/FlowGraph";
+import { AUTO_EDGES, AUTO_NODES, QA_AGENTS, QA_EDGES, QA_NODES } from "@/data/flows";
 import { disposeCopyMask, updateCopyMask } from "./stage";
 
 interface JourneyCanvasProps {
@@ -209,9 +211,14 @@ export default function JourneyCanvas({ mobile, still }: JourneyCanvasProps) {
       <NeuralField tier={tier} still={still} />
       <HeroNet still={still} />
       {still ? null : <EmbeddingCloud tier={tier} />}
-      {still ? null : <ModelBridgeScene mobile={mobile} />}
+      {/* Phones on the low tier get the SVG attention view instead. */}
+      {still || (mobile && tier === "low") ? null : <AttentionScene />}
+      {still ? null : <ConvScene />}
+      {still ? null : (
+        <FlowGraph chapter={5} stage="qa" prefix="qa-" nodes={QA_NODES} edges={QA_EDGES} agents={QA_AGENTS} content={{ w: 7.4, h: 2.5 }} />
+      )}
+      {still ? null : <FlowGraph chapter={6} stage="automation" prefix="auto-" nodes={AUTO_NODES} edges={AUTO_EDGES} content={{ w: 5.8, h: 2.1 }} />}
       {/* Desktop-only scenes; phones and reduced motion get the CSS versions. */}
-      {still || mobile ? null : <OcrScene />}
       {still || mobile ? null : <FinaleScene />}
       {tier === "low" || still ? null : <Effects mobile={mobile} />}
     </Canvas>
