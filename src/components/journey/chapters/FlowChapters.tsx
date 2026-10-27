@@ -117,7 +117,6 @@ export function QaChapter({ study }: { study: CaseStudy }) {
                 aria-label="Graph of the 12 app pages that were tested. Test agents walk from page to page and each edge lights as it is covered; the glucose-log page turns red and a red pulse carries that critical finding to the report."
                 className="relative h-[34svh] w-full md:h-[56vh]"
               >
-                <p className="absolute left-0 top-0 font-mono text-[0.62rem] text-faint">pages numbered; the app is confidential</p>
               </div>
             ) : (
               <QaDemo />
@@ -173,7 +172,7 @@ export function AutomationChapter({ study }: { study: CaseStudy }) {
                 aria-label="Signal-flow diagram: a payment event travels from Razorpay through a webhook and a Pabbly workflow to a WhatsApp Business message, each node lighting as the pulse arrives. Below, a separate flow runs from a call list through the prompt and call flow to an AI voice agent, shown with a voice waveform."
                 className="relative h-[30svh] w-full md:h-[50vh]"
               >
-                <p className="absolute left-0 top-0 font-mono text-[0.62rem] text-faint">payment flow · AI calling flow (separate trigger)</p>
+                <p className="absolute left-0 top-0 font-mono text-[0.62rem] text-faint">payment flow · AI calling flow</p>
               </div>
             ) : (
               <AutomationDemo />

@@ -177,8 +177,9 @@ export function ModelBridgeChapter({ study, usageExample, endSlot }: ModelBridge
             aria-label={`Illustrative attention over the prompt tokens ${PROMPT_TOKENS.map((t) => `"${t.trim()}"`).join(", ")} across three heads, then the request routed ${ROUTE.join(" → ")} and streamed back.`}
             className="relative h-[34svh] md:col-span-6 md:h-[72vh] lg:col-span-7"
           >
-            <p className="absolute left-0 top-0 font-mono text-[0.62rem] text-faint">
-              illustrative attention · <span ref={register("att-head")} className="text-soft" />
+            <p className="absolute left-0 top-0 font-mono text-[0.6rem] uppercase tracking-wider text-faint">illustrative</p>
+            <p className="absolute right-0 top-0 font-mono text-[0.62rem] text-soft">
+              <span ref={register("att-head")} />
             </p>
             {flat ? <AttentionFallback still={!scene3D} /> : null}
           </div>
