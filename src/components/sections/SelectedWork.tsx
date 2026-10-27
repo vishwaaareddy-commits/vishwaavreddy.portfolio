@@ -25,7 +25,7 @@ export function SelectedWork({ release }: { release: ModelBridgeRelease }) {
   return (
     <>
       <WorkIntroChapter />
-      <ModelBridgeChapter study={modelbridge} usageExample={release.usageExample} endSlot={<ModelBridgeLinks release={release} />} />
+      <ModelBridgeChapter study={modelbridge} installable={release.published} usageExample={release.usageExample} endSlot={<ModelBridgeLinks release={release} />} />
       <OcrChapter study={byId["esports-ocr"]} />
       <QaChapter study={byId["takehealth-qa"]} />
       <AutomationChapter study={byId.automation} />
