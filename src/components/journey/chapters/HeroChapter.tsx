@@ -3,40 +3,66 @@
 import { useEffect, useState } from "react";
 import { ArrowDown, Download } from "lucide-react";
 import { Magnetic } from "@/components/journey/chrome/Magnetic";
+import { TrainingPanel } from "@/components/journey/training/TrainingPanel";
 import { StreamingText } from "@/components/ui/StreamingText";
 import { profile } from "@/data/profile";
 import { useJourney } from "@/store/journey";
 import { Chapter } from "../Chapter";
 
-function Letters({ text, offset = 0, className = "" }: { text: string; offset?: number; className?: string }) {
+const LINE_1 = "Applied AI";
+const LINE_2 = "Engineer";
+const TOTAL = LINE_1.length + LINE_2.length;
+/** One character per tick, like tokens streaming from a model. */
+const TOKEN_MS = 55;
+/** The caret keeps blinking a moment after the last token. */
+const HOLD_MS = 1300;
+
+/** The headline as it is "generated": typed so far, then a blinking caret. */
+function Generated({ count }: { count: number }) {
+  const caret = <span className="token-caret" />;
+  const second = Math.max(0, count - LINE_1.length);
   return (
-    <span aria-hidden className={className}>
-      {[...text].map((ch, i) => (
-        <span key={i} className="hero-letter" style={{ ["--i" as string]: i + offset }}>
-          {ch === " " ? " " : ch}
-        </span>
-      ))}
+    <span aria-hidden className="absolute inset-0">
+      {LINE_1.slice(0, count)}
+      {count < LINE_1.length ? caret : null}
+      <br />
+      <span className="font-serif text-[1.12em] font-normal italic text-accent">
+        {LINE_2.slice(0, second)}
+        {count >= LINE_1.length ? caret : null}
+      </span>
     </span>
   );
 }
 
-const ASSEMBLE_MS = 1400;
-
 /**
  * Chapter 01. The headline is one real text element, visible from first
- * paint (it is the LCP element). When the Core ignites, an aria-hidden
- * overlay assembles the same words letter by letter from depth, then hands
- * back to the real text. On scroll the content lifts away (scrubbed).
+ * paint (it is the LCP element). When the network ignites, an aria-hidden
+ * overlay types the same words one character at a time behind a blinking
+ * caret, then hands back to the real text. Beside it, a real network trains
+ * live. On scroll the content lifts away while the camera pulls back.
  */
 export function HeroChapter({ releaseLabel }: { releaseLabel: string }) {
   const ignited = useJourney((s) => s.ignited);
-  const [assembled, setAssembled] = useState(false);
-  const assembling = ignited && !assembled;
+  const [count, setCount] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const typing = ignited && !finished;
 
   useEffect(() => {
     if (!ignited) return;
-    const id = setTimeout(() => setAssembled(true), ASSEMBLE_MS);
-    return () => clearTimeout(id);
+    let n = 0;
+    let hold: ReturnType<typeof setTimeout> | undefined;
+    const id = setInterval(() => {
+      n += 1;
+      setCount(n);
+      if (n >= TOTAL) {
+        clearInterval(id);
+        hold = setTimeout(() => setFinished(true), HOLD_MS);
+      }
+    }, TOKEN_MS);
+    return () => {
+      clearInterval(id);
+      clearTimeout(hold);
+    };
   }, [ignited]);
 
   return (
@@ -52,11 +78,13 @@ export function HeroChapter({ releaseLabel }: { releaseLabel: string }) {
       className="flex min-h-[100svh] items-end pb-20 pt-28 md:items-center md:pb-24"
       build={(tl) => {
         // Fills the whole (short) pin, so no empty screen follows the hero.
-        tl.to("[data-lift]", { yPercent: -35, opacity: 0, stagger: 0.05, duration: 0.6 }, 0.1);
+        // Copy is gone by mid-pin; the rest of the pin is the network revealing.
+        tl.to("[data-lift]", { yPercent: -35, opacity: 0, stagger: 0.03, duration: 0.35 }, 0.05);
+        tl.to({}, { duration: 0.45 }, 0.55);
       }}
     >
-      <div className="shell relative z-10">
-        <div className="max-w-2xl">
+      <div className="shell relative z-10 grid w-full grid-cols-1 gap-12 md:grid-cols-12 md:items-center md:gap-8">
+        <div data-copy className="max-w-2xl md:order-2 md:col-span-7">
           <p data-lift className="inline-flex items-center gap-2 rounded-full border border-line bg-ink/60 px-3 py-1 font-mono text-[0.7rem] text-soft backdrop-blur">
             <span className="size-1.5 rounded-full bg-accent shadow-[0_0_8px_rgba(59,227,245,0.9)]" />
             {profile.currentRole}
@@ -66,19 +94,13 @@ export function HeroChapter({ releaseLabel }: { releaseLabel: string }) {
             <span data-lift className="block font-mono text-sm font-normal uppercase tracking-[0.3em] text-soft">
               {profile.name}
             </span>
-            <span data-lift className="relative mt-5 block text-[3.1rem] font-semibold leading-[0.95] text-fg sm:text-7xl xl:text-[6.2rem]">
-              <span className={assembling ? "opacity-0" : undefined}>
+            <span data-lift className="relative mt-5 block text-[3.1rem] font-semibold leading-[0.95] text-fg sm:text-7xl md:text-[3.6rem] lg:text-7xl xl:text-[6.2rem]">
+              <span className={typing ? "opacity-0" : undefined}>
                 Applied AI
                 <br />
                 <span className="font-serif text-[1.12em] font-normal italic text-accent">Engineer</span>
               </span>
-              {assembling ? (
-                <span aria-hidden className="absolute inset-0">
-                  <Letters text="Applied AI" />
-                  <br />
-                  <Letters text="Engineer" offset={10} className="font-serif text-[1.12em] font-normal italic text-accent" />
-                </span>
-              ) : null}
+              {typing ? <Generated count={count} /> : null}
             </span>
           </h1>
 
@@ -122,6 +144,9 @@ export function HeroChapter({ releaseLabel }: { releaseLabel: string }) {
               <span className="mt-1 block">An async Python client for a multi-provider LLM gateway, with streaming and retries.</span>
             </span>
           </a>
+        </div>
+        <div data-lift className="md:order-1 md:col-span-5">
+          <TrainingPanel />
         </div>
       </div>
     </Chapter>

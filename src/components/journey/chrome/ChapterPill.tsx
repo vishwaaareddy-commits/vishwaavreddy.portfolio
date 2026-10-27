@@ -61,6 +61,8 @@ export function ChapterPill() {
   }, []);
 
   // Debounce so crossing a boundary quickly never triggers repeated scrambles.
+  // A chapter change cancels any running scramble, which lands on its exact
+  // target first; the new one then starts from clean text.
   useEffect(() => {
     const el = text.current;
     if (!el) return;
@@ -75,7 +77,6 @@ export function ChapterPill() {
     return () => {
       clearTimeout(id);
       cancel();
-      if (shown.current !== null) el.textContent = label(shown.current);
     };
   }, [chapter]);
 

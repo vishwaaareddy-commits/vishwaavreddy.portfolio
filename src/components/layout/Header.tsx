@@ -42,7 +42,7 @@ export function Header() {
           <span className="hidden font-mono text-[0.68rem] font-normal text-faint sm:inline">/ applied ai</span>
         </a>
 
-        <nav aria-label="Primary" className="hidden md:block">
+        <nav aria-label="Primary" className="hidden lg:block">
           <ul className="flex items-center gap-7">
             {navItems.map((item) => (
               <li key={item.href}>
@@ -74,7 +74,7 @@ export function Header() {
 
         <button
           type="button"
-          className="-mr-2 rounded-md p-2 text-soft md:hidden"
+          className="-mr-2 rounded-md p-2 text-soft lg:hidden"
           aria-expanded={open}
           aria-controls="mobile-nav"
           aria-label={open ? "Close menu" : "Open menu"}
@@ -84,7 +84,7 @@ export function Header() {
         </button>
       </div>
 
-      <nav id="mobile-nav" aria-label="Mobile" hidden={!open} className="border-t border-line md:hidden">
+      <nav id="mobile-nav" aria-label="Mobile" hidden={!open} className="border-t border-line lg:hidden">
         <ul className="mx-auto flex max-w-7xl flex-col px-5 py-4">
           {navItems.map((item) => (
             <li key={item.href}>

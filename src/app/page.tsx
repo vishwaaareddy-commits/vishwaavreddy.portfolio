@@ -3,6 +3,7 @@ import { HeroChapter } from "@/components/journey/chapters/HeroChapter";
 import { ChapterPill } from "@/components/journey/chrome/ChapterPill";
 import { Cursor } from "@/components/journey/chrome/Cursor";
 import { Frame } from "@/components/journey/chrome/Frame";
+import { TrainingHud } from "@/components/journey/chrome/TrainingHud";
 import { JourneyStage } from "@/components/journey/JourneyStage";
 import { Preloader } from "@/components/journey/Preloader";
 import { SmoothScroll } from "@/components/journey/SmoothScroll";
@@ -46,6 +47,7 @@ export default async function Home() {
       <SmoothScroll />
       <Frame />
       <ChapterPill />
+      <TrainingHud />
       <Cursor />
       <Header />
       <HashScroll />

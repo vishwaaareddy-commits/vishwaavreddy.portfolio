@@ -18,6 +18,9 @@ export const CHAPTERS = [
 
 export type ChapterIndex = (typeof CHAPTERS)[number]["index"];
 
+/** GPU budget, stepped down by the canvas PerformanceMonitor. */
+export type Tier = "high" | "medium" | "low";
+
 interface JourneyState {
   /** Chapter currently in view. */
   chapter: number;
@@ -26,25 +29,32 @@ interface JourneyState {
    * 0→1 scroll progress. The 3D scene reads this every frame.
    */
   t: number;
-  /** Set when the preloader finishes; the Core ignites. */
+  /** Set when the preloader finishes; the network ignites layer by layer. */
   ignited: boolean;
+  /** performance.now() at ignition (drives the left-to-right sweep). */
+  ignitedAt: number;
+  tier: Tier;
   /** Contact finale progress (0→1) as the contact heading scrolls in. */
   finale: number;
   setChapter: (chapter: number) => void;
   setT: (t: number) => void;
   setFinale: (finale: number) => void;
   ignite: () => void;
+  setTier: (tier: Tier) => void;
 }
 
 export const useJourney = create<JourneyState>((set) => ({
   chapter: 1,
   t: 1,
   ignited: false,
+  ignitedAt: 0,
+  tier: "high",
   finale: 0,
   setChapter: (chapter) => set((s) => (s.chapter === chapter ? s : { chapter })),
   setT: (t) => set({ t }),
   setFinale: (finale) => set({ finale }),
-  ignite: () => set({ ignited: true }),
+  ignite: () => set((s) => (s.ignited ? s : { ignited: true, ignitedAt: performance.now() })),
+  setTier: (tier) => set({ tier }),
 }));
 
 /**
@@ -67,3 +77,9 @@ export function chapterProgress(t: number, index: number) {
 
 /** DOM labels positioned by the canvas each frame (text stays real HTML). */
 export const labelRegistry = new Map<string, HTMLElement>();
+
+/**
+ * Pointer in normalised device coordinates, tracked on window because the
+ * canvas never receives pointer events (it sits behind the page).
+ */
+export const pointer = { x: 0, y: 0, active: false };

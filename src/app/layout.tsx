@@ -71,7 +71,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         {/* Hides the preloader before first paint on repeat visits and with reduced motion. */}
         <script dangerouslySetInnerHTML={{ __html: preloaderSkipScript }} />
         <noscript>
-          <style>{`[data-preloader]{display:none!important}.hero-letter{opacity:1!important;filter:none!important;transform:none!important}`}</style>
+          <style>{`[data-preloader]{display:none!important}`}</style>
         </noscript>
       </head>
       <body>

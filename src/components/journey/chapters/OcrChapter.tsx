@@ -1,11 +1,10 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { CaseNotes } from "@/components/projects/CaseNotes";
 import { OcrDemo } from "@/components/projects/OcrDemo";
 import { StatusBadge } from "@/components/ui/StatusBadge";
-import { useMediaQuery, useReducedMotion } from "@/hooks/useMediaQuery";
+import { useScene3D } from "@/hooks/useScene3D";
 import { gsap } from "@/lib/gsap";
-import { hasWebGL2 } from "@/lib/webgl";
 import { labelRegistry } from "@/store/journey";
 import type { CaseStudy } from "@/types/content";
 import { Chapter } from "../Chapter";
@@ -17,29 +16,29 @@ const ROWS = [
   { raw: "ᴅᴇᴍᴏ·ɴᴀᴍᴇ", player: "DemoName", opponent: "PlayerAlpha" },
 ];
 
-const subscribeNoop = () => () => {};
+/** When each row's tag lands (chapter progress); matches OCR_TIMELINE.fly in the scene. */
+const landAt = (i: number) => 0.8 + i * 0.05;
 
 /**
- * Chapter 04 "Holographic scan". Desktop with WebGL: a 3D panel fills the
- * right-column slot and name tags fly into the table below it. Phones,
- * reduced motion and no-WebGL get the CSS step-through instead.
+ * Chapter 04, CNN feature maps. The game frame enters as an input plane,
+ * a scan line passes, four conv planes light up with feature maps computed
+ * from the frame, boxes snap onto the kill feed and the names fly into the
+ * table. Reduced motion and no-WebGL get the CSS step-through instead.
  */
 export function OcrChapter({ study }: { study: CaseStudy }) {
-  const desktop = useMediaQuery("(min-width: 768px)", false);
-  const reduced = useReducedMotion();
-  const webgl = useSyncExternalStore(subscribeNoop, () => desktop && !reduced && hasWebGL2(), () => false);
-  const show3D = desktop && !reduced && webgl;
+  const { scene3D } = useScene3D();
 
   return (
     <>
       {/* Remount when the 3D decision resolves after hydration, so the timeline sees the table rows. */}
       <Chapter
-        key={show3D ? "3d" : "css"}
+        key={scene3D ? "3d" : "css"}
         index={4}
         id="esports-ocr"
         pin
         pinOnMobile={false}
-        length={2.2}
+        unpinnedRange={["top 80%", "bottom 80%"]}
+        length={0.7}
         aria-labelledby="esports-ocr-title"
         className="flex min-h-[100svh] items-center py-24 md:py-0"
         build={(tl, { root }) => {
@@ -47,33 +46,43 @@ export function OcrChapter({ study }: { study: CaseStudy }) {
           if (!rows.length) return;
           // Rows wait dimmed (never below 0.4) until their tag lands.
           gsap.set(rows, { opacity: 0.4 });
-          rows.forEach((row, i) => tl.to(row, { opacity: 1, duration: 0.05 }, 0.66 + i * 0.05));
+          rows.forEach((row, i) => tl.to(row, { opacity: 1, duration: 0.04 }, landAt(i)));
           tl.to({}, { duration: 1 }, 0);
         }}
       >
-        <div className="shell relative z-10 grid w-full grid-cols-1 gap-10 md:grid-cols-12 md:items-center">
-          <div className="md:col-span-5">
+        <div className="shell relative z-10 grid w-full grid-cols-1 gap-8 md:grid-cols-12 md:items-center md:gap-10">
+          <div data-copy className="md:col-span-5">
             <p className="eyebrow flex items-center gap-3">
               <span className="text-accent">004</span>
               <span aria-hidden className="h-px w-8 bg-gradient-to-r from-accent/70 to-transparent" />
               {study.kicker} · {study.org}
             </p>
-            <h2 id="esports-ocr-title" className="mt-5 font-display text-4xl font-semibold tracking-tight md:text-6xl">
+            <h2 id="esports-ocr-title" className="mt-4 font-display text-4xl font-semibold tracking-tight md:text-5xl">
               BGMI esports <span className="font-serif text-[1.1em] font-normal italic text-accent">OCR</span>
             </h2>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
+            <div className="mt-3 flex flex-wrap items-center gap-3">
               <StatusBadge status={study.status} />
             </div>
             <p className="mt-3 text-sm leading-relaxed text-faint">{study.statusNote}</p>
-            <p className="mt-6 max-w-md leading-relaxed text-soft">{study.problem}</p>
+            <p className="mt-4 max-w-md leading-relaxed text-soft">{study.problem}</p>
+            <CaseNotes study={study} />
           </div>
 
           <div className="md:col-span-7">
-            {show3D ? (
+            {scene3D ? (
               <>
-                {/* Empty slot the 3D panel is fitted to. */}
-                <div data-ocr-stage aria-hidden className="aspect-video w-full" />
-                <table className="mt-4 w-full font-mono text-[0.72rem]">
+                {/* Empty stage the 3D input frame and conv planes are fitted to. */}
+                <p className="mb-2 font-mono text-[0.62rem] text-faint">
+                  illustrative feature maps · fixed kernels on this frame · the real pipeline is OpenCV + PaddleOCR
+                </p>
+                <div
+                  data-stage="ocr"
+                  data-copy
+                  role="img"
+                  aria-label="A game frame as the input plane, a scan line, then four convolution-layer planes showing feature maps computed from the frame with edge and blur kernels; boxes snap onto the kill feed and the names fly into the table."
+                  className="relative aspect-video w-full"
+                />
+                <table data-copy className="mt-4 w-full font-mono text-[0.72rem]">
                   <caption className="mb-2 text-left text-[0.62rem] uppercase tracking-wider text-faint">
                     Structured result (example data)
                   </caption>
@@ -105,7 +114,7 @@ export function OcrChapter({ study }: { study: CaseStudy }) {
       </Chapter>
 
       {/* Name tags in flight: real HTML, positioned each frame by the canvas. */}
-      {show3D ? (
+      {scene3D ? (
         <div aria-hidden className="pointer-events-none fixed inset-0 z-[5]">
           {ROWS.map((row, i) => (
             <span
