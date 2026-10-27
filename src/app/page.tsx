@@ -1,5 +1,6 @@
 import { ChapterSpy } from "@/components/journey/ChapterSpy";
 import { AboutChapter } from "@/components/journey/chapters/AboutChapter";
+import { ContactChapter } from "@/components/journey/chapters/ContactChapter";
 import { ExperienceChapter } from "@/components/journey/chapters/ExperienceChapter";
 import { HeroChapter } from "@/components/journey/chapters/HeroChapter";
 import { ChapterPill } from "@/components/journey/chrome/ChapterPill";
@@ -14,7 +15,6 @@ import { HashScroll } from "@/components/layout/HashScroll";
 import { Header } from "@/components/layout/Header";
 import { Archive } from "@/components/sections/Archive";
 import { Capabilities } from "@/components/sections/Capabilities";
-import { Contact } from "@/components/sections/Contact";
 import { MoreBuilds } from "@/components/sections/MoreBuilds";
 import { ProofStrip } from "@/components/sections/ProofStrip";
 import { SelectedWork } from "@/components/sections/SelectedWork";
@@ -61,7 +61,7 @@ export default async function Home() {
         <ExperienceChapter />
         <Archive />
         <AboutChapter />
-        <Contact />
+        <ContactChapter />
       </main>
       <div className="relative z-10">
         <Footer />
