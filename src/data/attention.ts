@@ -48,9 +48,9 @@ export const HEADS: { name: string; arcs: Arc[] }[] = [
 
 /** Scroll schedule (chapter progress 0–1), shared by the 3D scene and the 2D fallback. */
 export const ATTENTION_TIMELINE = {
-  tokensIn: [0.02, 0.1],
   heads: [
-    [0.08, 0.26],
+    // Head 1 is already showing at progress 0: the stage is never empty.
+    [-0.1, 0.26],
     [0.26, 0.44],
     [0.44, 0.6],
   ],

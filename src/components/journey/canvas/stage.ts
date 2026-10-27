@@ -113,6 +113,18 @@ export function hideLabels(registry: Map<string, HTMLElement>, prefix: string) {
   for (const [key, el] of registry) if (key.startsWith(prefix)) el.style.display = "none";
 }
 
+/**
+ * Visibility of a stage from its own rect: 1 once it is well on screen,
+ * easing to 0 only as it leaves. Never tied to scroll progress, so a stage
+ * is never empty while its section is visible.
+ */
+export function stageFade(fit: StageFit, size: { height: number }) {
+  if (!fit.visible || !fit.rect) return 0;
+  const r = fit.rect;
+  const onScreen = Math.min(r.bottom, size.height) - Math.max(r.top, 0);
+  return Math.min(1, Math.max(0, onScreen / Math.min(r.height, 160))) * fit.opacity;
+}
+
 /** Max copy rects passed to shaders (see MASK_GLSL). */
 export const MASK_MAX = 8;
 

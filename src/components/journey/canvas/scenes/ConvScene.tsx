@@ -4,9 +4,9 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import media from "@/data/media.generated.json";
-import { chapterProgress, chapterVisibility, labelRegistry, useJourney } from "@/store/journey";
+import { chapterProgress, labelRegistry, useJourney } from "@/store/journey";
 import { CYAN, HOT, VIOLET } from "../neural/NetworkMesh";
-import { fitToStage, hideLabels } from "../stage";
+import { fitToStage, hideLabels, stageFade } from "../stage";
 
 const CHAPTER = 4;
 const VIDEO = "/work/esports-ocr.mp4";
@@ -272,9 +272,8 @@ export function ConvScene() {
     const ip = input.current;
     if (!o || !g || !ip) return;
     const { t } = useJourney.getState();
-    let vis = chapterVisibility(t, CHAPTER, 0.06, 0.12);
-    const fit = vis > 0 ? fitToStage("ocr", o, camera as THREE.PerspectiveCamera, size, CONTENT.w, CONTENT.h, { fill: 0.92 }) : null;
-    vis = fit?.visible ? vis * fit.opacity : 0;
+    const fit = fitToStage("ocr", o, camera as THREE.PerspectiveCamera, size, CONTENT.w, CONTENT.h, { fill: 0.92 });
+    const vis = stageFade(fit, size);
     o.visible = vis > 0;
     if (!o.visible) return hideLabels(labelRegistry, "ocr-tag-");
     const p = chapterProgress(t, CHAPTER);
@@ -296,8 +295,9 @@ export function ConvScene() {
       const on = span(p, OCR_TIMELINE.layer(k));
       lit = Math.max(lit, on > 0 ? (k + on) / LAYERS.length : 0);
       const u = (m.material as THREE.ShaderMaterial).uniforms;
-      u.uOn.value = on;
-      u.uAlpha.value = vis * (0.35 + 0.65 * smooth(Math.min(1, on * 2)));
+      // Idle: every map is already computed, dimmer; its layer's turn brightens it.
+      u.uOn.value = 1;
+      u.uAlpha.value = vis * (0.45 + 0.55 * smooth(Math.min(1, on * 2)));
     });
     if (links.current) (links.current.material as THREE.LineBasicMaterial).opacity = vis * (0.08 + 0.25 * lit);
 
@@ -305,8 +305,8 @@ export function ConvScene() {
       if (!box) return;
       const a = span(p, OCR_TIMELINE.box(i));
       box.scale.set(BOX.w * (1.3 - 0.3 * backOut(a)), BOX.h * (1.3 - 0.3 * backOut(a)), 1);
-      box.visible = a > 0;
-      (box.material as THREE.LineBasicMaterial).opacity = a * vis;
+      // Idle: faint boxes already mark the feed; they snap bright as the detection runs.
+      (box.material as THREE.LineBasicMaterial).opacity = (0.25 + 0.75 * a) * vis;
     });
 
     // Name tags (HTML) lift off the boxes and fly into the result table rows, in screen space.

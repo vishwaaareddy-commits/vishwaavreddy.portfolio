@@ -3,9 +3,9 @@
 import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
-import { chapterProgress, chapterVisibility, labelRegistry, useJourney } from "@/store/journey";
+import { chapterProgress, labelRegistry, useJourney } from "@/store/journey";
 import { CYAN, HOT } from "../neural/NetworkMesh";
-import { fitToStage, hideLabels, placeLabel } from "../stage";
+import { fitToStage, hideLabels, placeLabel, stageFade } from "../stage";
 
 export const DANGER = new THREE.Color("#f26b6b");
 
@@ -95,7 +95,8 @@ const edgeFrag = /* glsl */ `
   void main() {
     vec3 tint = vKind > 2.5 ? uDanger : uCyan;
     float done = step(vT, vLit);
-    float a = (0.12 + 0.6 * done + 1.2 * vHead) * (1.0 - vSide * vSide) * uAlpha;
+    // Idle edges are clearly drawn; the signal brightens them.
+    float a = (0.28 + 0.5 * done + 1.2 * vHead) * (1.0 - vSide * vSide) * uAlpha;
     vec3 color = tint * (0.5 + 0.8 * done) + uHot * vHead * 1.4;
     gl_FragColor = vec4(color * a, a);
   }
@@ -252,11 +253,10 @@ export function FlowGraph({ chapter, stage, prefix, nodes, edges, content, agent
     const g = group.current;
     if (!o || !g) return;
     const { t } = useJourney.getState();
-    let vis = chapterVisibility(t, chapter, 0.06, 0.12);
-    const fit = vis > 0 ? fitToStage(stage, o, camera as THREE.PerspectiveCamera, size, content.w, content.h) : null;
-    vis = fit?.visible ? vis * fit.opacity : 0;
+    const fit = fitToStage(stage, o, camera as THREE.PerspectiveCamera, size, content.w, content.h);
+    const vis = stageFade(fit, size);
     o.visible = vis > 0;
-    if (!o.visible || !fit) return hideLabels(labelRegistry, prefix);
+    if (!o.visible) return hideLabels(labelRegistry, prefix);
     const p = chapterProgress(t, chapter);
     g.rotation.y = Math.sin(clock.elapsedTime * 0.2) * 0.1;
     g.updateMatrixWorld();

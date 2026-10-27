@@ -4,9 +4,9 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { ATTENTION_TIMELINE as TL, HEADS, PROMPT_TOKENS, headMix, span } from "@/data/attention";
-import { chapterProgress, chapterVisibility, labelRegistry, useJourney } from "@/store/journey";
+import { chapterProgress, labelRegistry, useJourney } from "@/store/journey";
 import { CYAN, HOT, VIOLET } from "../neural/NetworkMesh";
-import { fitToStage, hideLabels, placeLabel } from "../stage";
+import { fitToStage, hideLabels, placeLabel, stageFade } from "../stage";
 
 const CHAPTER = 3;
 const CONTENT = { w: 6.4, h: 4.8 };
@@ -182,7 +182,8 @@ export function AttentionScene() {
       chunkGeo: new THREE.BoxGeometry(0.14, 0.045, 0.045),
       tokenMat: new THREE.MeshBasicMaterial({ color: CYAN.clone().multiplyScalar(1.3), transparent: true, opacity: 0, toneMapped: false }),
       nodeMat: new THREE.MeshBasicMaterial({ color: CYAN.clone(), transparent: true, opacity: 0, toneMapped: false }),
-      routeMat: new THREE.MeshBasicMaterial({ color: CYAN.clone().multiplyScalar(1.2), transparent: true, opacity: 0, toneMapped: false }),
+      // One material per segment: each brightens on its own as the request passes.
+      routeMats: curves.map(() => new THREE.MeshBasicMaterial({ color: CYAN.clone().multiplyScalar(1.2), transparent: true, opacity: 0, toneMapped: false })),
       glowMat: new THREE.MeshBasicMaterial({ color: HOT.clone().multiplyScalar(2.2), transparent: true, opacity: 0, toneMapped: false }),
     };
   }, []);
@@ -190,7 +191,7 @@ export function AttentionScene() {
   useEffect(
     () => () => {
       [...built.tubes, built.arcGeo, built.dot, built.node, built.packetGeo, built.chunkGeo].forEach((g) => g.dispose());
-      [built.arcMat, built.tokenMat, built.nodeMat, built.routeMat, built.glowMat].forEach((m) => m.dispose());
+      [built.arcMat, built.tokenMat, built.nodeMat, ...built.routeMats, built.glowMat].forEach((m) => m.dispose());
     },
     [built],
   );
@@ -209,18 +210,18 @@ export function AttentionScene() {
     const g = group.current;
     if (!outer || !g) return;
     const { t } = useJourney.getState();
-    let vis = chapterVisibility(t, CHAPTER, 0.06, 0.12);
-    const fit = vis > 0 ? fitToStage("attention", outer, camera as THREE.PerspectiveCamera, size, CONTENT.w, CONTENT.h) : null;
-    vis = fit?.visible ? vis * fit.opacity : 0;
+    const fit = fitToStage("attention", outer, camera as THREE.PerspectiveCamera, size, CONTENT.w, CONTENT.h);
+    const vis = stageFade(fit, size);
     outer.visible = vis > 0;
-    if (!outer.visible || !fit) return hideLabels(labelRegistry, "att-");
+    if (!outer.visible) return hideLabels(labelRegistry, "att-");
     const p = chapterProgress(t, CHAPTER);
     const time = clock.elapsedTime;
     g.rotation.y = Math.sin(time * 0.2) * 0.12;
     g.updateMatrixWorld();
 
     // Materials are reached through refs: they are mutated every frame.
-    const tokensIn = span(p, TL.tokensIn);
+    // Idle state at progress 0 is complete: tokens, head 1 and the dim route are already there.
+    const tokensIn = 1;
     if (tokens.current) (tokens.current.material as THREE.MeshBasicMaterial).opacity = vis * tokensIn;
     const mix = headMix(p);
     const arcMat = arcs.current?.material as THREE.ShaderMaterial | undefined;
@@ -231,16 +232,16 @@ export function AttentionScene() {
     }
 
     // Route grows segment by segment, then the packet travels it.
+    // The route is always drawn dim; each segment brightens as the request passes through it.
     const route = span(p, TL.route);
     const count = routeMeshes.current.length;
     routeMeshes.current.forEach((mesh, i) => {
       if (!mesh) return;
       const k = THREE.MathUtils.clamp(route * count - i, 0, 1);
-      mesh.geometry.setDrawRange(0, Math.floor((mesh.geometry.index?.count ?? 0) * k));
-      (mesh.material as THREE.MeshBasicMaterial).opacity = 0.9 * vis;
+      (mesh.material as THREE.MeshBasicMaterial).opacity = (0.22 + 0.68 * k) * vis;
     });
     if (nodes.current) {
-      (nodes.current.material as THREE.MeshBasicMaterial).opacity = vis * smooth(span(p, [TL.route[0] - 0.08, TL.route[0]]));
+      (nodes.current.material as THREE.MeshBasicMaterial).opacity = vis * (0.5 + 0.5 * smooth(span(p, [TL.route[0] - 0.08, TL.route[0]])));
     }
     const glow = packet.current;
     if (glow) {
@@ -266,7 +267,7 @@ export function AttentionScene() {
     PROMPT_TOKENS.forEach((_, i) =>
       placeLabel(labelRegistry.get(`att-tok-${i}`), g, local.set(tokenX(i), TOKEN_Y, 0), camera, size, rect, vis * tokensIn, 22),
     );
-    const nodeShown = vis * smooth(span(p, [TL.route[0] - 0.06, TL.route[0] + 0.04]));
+    const nodeShown = vis * (0.6 + 0.4 * smooth(span(p, [TL.route[0] - 0.06, TL.route[0] + 0.04])));
     ROUTE_POS.forEach((pos, i) =>
       placeLabel(labelRegistry.get(`att-node-${i}`), g, local.set(...pos), camera, size, rect, nodeShown, -22),
     );
@@ -293,7 +294,7 @@ export function AttentionScene() {
               routeMeshes.current[i] = m;
             }}
             geometry={geo}
-            material={built.routeMat}
+            material={built.routeMats[i]}
           />
         ))}
         <mesh ref={packet} geometry={built.packetGeo} material={built.glowMat} visible={false} />
