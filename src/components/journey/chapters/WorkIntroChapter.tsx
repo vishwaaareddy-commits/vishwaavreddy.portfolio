@@ -73,8 +73,8 @@ export function WorkIntroChapter() {
           const tokens = gsap.utils.toArray<HTMLElement>("[data-token]", root);
           const ghosts = gsap.utils.toArray<HTMLElement>("[data-ghost]", root);
           const stage = root.querySelector<HTMLElement>('[data-stage="embeddings"]');
-          // Dim never drops below 0.4, so text stays legible if a trigger is missed.
-          gsap.set(tokens, { opacity: 0.4 });
+          // Dim never drops below 0.6, so text stays legible (and AA-contrast) if a trigger is missed.
+          gsap.set(tokens, { opacity: 0.6 });
           gsap.set("[data-cluster], [data-after]", { opacity: 0.4, y: 12 });
 
           // 1. Words light up.

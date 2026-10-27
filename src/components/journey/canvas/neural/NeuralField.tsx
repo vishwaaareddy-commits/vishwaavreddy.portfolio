@@ -50,6 +50,8 @@ function fieldAlpha(t: number) {
  */
 export function NeuralField({ tier, still }: { tier: Tier; still: boolean }) {
   const net = useRef<NetworkHandle>(null);
+  // The canvas can mount after ignition (it loads when idle): sweep from whichever is later.
+  const mountedAt = useRef(performance.now());
   const group = useRef<THREE.Group>(null);
 
   const model = useMemo(() => {
@@ -135,7 +137,7 @@ export function NeuralField({ tier, still }: { tier: Tier; still: boolean }) {
 
     const u = h.uniforms;
     u.uTime.value = time;
-    u.uIgnite.value = still ? 10 : ignited ? (performance.now() - ignitedAt) / 1000 : 0;
+    u.uIgnite.value = still ? 10 : ignited ? (performance.now() - Math.max(ignitedAt, mountedAt.current)) / 1000 : 0;
     // Scroll = forward pass: the wavefront moves input → output over the journey.
     u.uWave.value = THREE.MathUtils.clamp((t - 1) / (CHAPTERS.length - 2), 0, 1);
     u.uAlpha.value = still ? 0.8 : fieldAlpha(t);
