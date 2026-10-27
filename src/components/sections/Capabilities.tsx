@@ -10,8 +10,8 @@ const titles: Record<string, string> = Object.fromEntries(
 
 export function Capabilities() {
   return (
-    <section id="capabilities" aria-labelledby="capabilities-title" className="border-t border-line bg-ink-2">
-      <div className="shell py-24 md:py-32">
+    <section id="capabilities" aria-labelledby="capabilities-title" className="relative z-10 border-t border-line">
+      <div data-copy className="shell py-24 md:py-32">
         <SectionHeader
           id="capabilities-title"
           index="008"

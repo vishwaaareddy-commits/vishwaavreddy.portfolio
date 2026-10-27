@@ -15,10 +15,10 @@ const links = [
 export function Contact() {
   return (
     // Transparent on desktop so the 3D finale behind it shows through.
-    <section id="contact" aria-labelledby="contact-title" className="relative overflow-hidden border-t border-line bg-ink-2 md:bg-transparent">
+    <section id="contact" aria-labelledby="contact-title" className="relative overflow-hidden border-t border-line">
       {/* Phone version of the finale: a dim CSS ring behind the heading. */}
       <div aria-hidden className="finale-ring md:hidden" />
-      <div className="shell relative py-24 md:py-32">
+      <div data-copy className="shell relative py-24 md:py-32">
         <SectionHeader
           id="contact-title"
           index="011"

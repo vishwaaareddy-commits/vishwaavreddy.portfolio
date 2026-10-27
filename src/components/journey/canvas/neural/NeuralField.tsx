@@ -149,8 +149,8 @@ export function NeuralField({ tier, still }: { tier: Tier; still: boolean }) {
         edgeAlpha={0.85}
         fogNear={9}
         fogFar={26}
-        // Edges are additive and overlap by the dozen, so the floor must be tiny.
-        maskFloor={0.03}
+        // Nothing draws over copy: additive edges overlap by the dozen, so any floor would add up.
+        maskFloor={0}
       />
     </group>
   );
