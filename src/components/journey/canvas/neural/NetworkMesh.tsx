@@ -25,6 +25,8 @@ function makeUniforms(count: number, opts: NetworkOptions) {
     uAlpha: { value: 1 },
     /** View-space distance where fog starts and where it is total. */
     uFog: { value: new THREE.Vector2(opts.fogNear ?? 1000, opts.fogFar ?? 2000) },
+    /** View distance range over which neurons right at the lens fade in (0,0 = off). */
+    uNear: { value: new THREE.Vector2(...(opts.nearFade ?? [0, 0])) },
     /** Visibility left inside copy rects (1 = unmasked). */
     uMaskFloor: { value: opts.maskFloor ?? 1 },
     uRadius: { value: opts.radius ?? 0.08 },
@@ -56,12 +58,14 @@ const COMMON = /* glsl */ `
 
 const FRAG_COMMON = /* glsl */ `
   uniform vec2 uFog;
+  uniform vec2 uNear;
   uniform float uMaskFloor;
   uniform float uAlpha;
   ${MASK_GLSL}
   float fog(float viewZ) {
     // Far layers fade into the dark; anything right at the lens fades too.
-    return (1.0 - smoothstep(uFog.x, uFog.y, viewZ)) * smoothstep(1.5, 4.5, viewZ);
+    float near = uNear.y > 0.0 ? smoothstep(uNear.x, uNear.y, viewZ) : 1.0;
+    return (1.0 - smoothstep(uFog.x, uFog.y, viewZ)) * near;
   }
 `;
 
@@ -202,6 +206,8 @@ export interface NetworkOptions {
   edgeAlpha?: number;
   fogNear?: number;
   fogFar?: number;
+  /** Fade neurons this close to the camera (background field only). */
+  nearFade?: [number, number];
   maskFloor?: number;
 }
 

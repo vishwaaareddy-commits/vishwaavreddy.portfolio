@@ -297,7 +297,7 @@ export function ConvScene() {
       const u = (m.material as THREE.ShaderMaterial).uniforms;
       // Idle: every map is already computed, dimmer; its layer's turn brightens it.
       u.uOn.value = 1;
-      u.uAlpha.value = vis * (0.45 + 0.55 * smooth(Math.min(1, on * 2)));
+      u.uAlpha.value = vis * (0.6 + 0.4 * smooth(Math.min(1, on * 2)));
     });
     if (links.current) (links.current.material as THREE.LineBasicMaterial).opacity = vis * (0.08 + 0.25 * lit);
 

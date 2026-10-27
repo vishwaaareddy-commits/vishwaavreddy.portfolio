@@ -15,6 +15,7 @@ import { NeuralField } from "./neural/NeuralField";
 import { AttentionScene } from "./scenes/AttentionScene";
 import { ConvScene } from "./scenes/ConvScene";
 import { FlowGraph } from "./scenes/FlowGraph";
+import { LossScene } from "./scenes/LossScene";
 import { AUTO_EDGES, AUTO_NODES, QA_AGENTS, QA_EDGES, QA_NODES } from "@/data/flows";
 import { disposeCopyMask, updateCopyMask } from "./stage";
 
@@ -214,6 +215,7 @@ export default function JourneyCanvas({ mobile, still }: JourneyCanvasProps) {
       {/* Phones on the low tier get the SVG attention view instead. */}
       {still || (mobile && tier === "low") ? null : <AttentionScene />}
       {still ? null : <ConvScene />}
+      {still ? null : <LossScene />}
       {still ? null : (
         <FlowGraph chapter={5} stage="qa" prefix="qa-" nodes={QA_NODES} edges={QA_EDGES} agents={QA_AGENTS} content={{ w: 7.4, h: 2.5 }} />
       )}

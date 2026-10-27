@@ -1,4 +1,5 @@
 import { ChapterSpy } from "@/components/journey/ChapterSpy";
+import { ExperienceChapter } from "@/components/journey/chapters/ExperienceChapter";
 import { HeroChapter } from "@/components/journey/chapters/HeroChapter";
 import { ChapterPill } from "@/components/journey/chrome/ChapterPill";
 import { Cursor } from "@/components/journey/chrome/Cursor";
@@ -14,7 +15,6 @@ import { About } from "@/components/sections/About";
 import { Archive } from "@/components/sections/Archive";
 import { Capabilities } from "@/components/sections/Capabilities";
 import { Contact } from "@/components/sections/Contact";
-import { Experience } from "@/components/sections/Experience";
 import { MoreBuilds } from "@/components/sections/MoreBuilds";
 import { ProofStrip } from "@/components/sections/ProofStrip";
 import { SelectedWork } from "@/components/sections/SelectedWork";
@@ -58,7 +58,7 @@ export default async function Home() {
         <SelectedWork release={release} />
         <MoreBuilds />
         <Capabilities />
-        <Experience />
+        <ExperienceChapter />
         <Archive />
         <About />
         <Contact />
