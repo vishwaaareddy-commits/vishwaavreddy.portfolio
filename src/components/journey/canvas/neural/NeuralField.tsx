@@ -29,7 +29,7 @@ const projected = new THREE.Vector3();
  * once the camera pulls back, and stepped back wherever a chapter has its
  * own stage visual so the two never compete.
  */
-const ALPHA_BY_CHAPTER = [0.3, 0.35, 0.75, 0.4, 0.4, 0.6, 0.6, 0.5, 0.6, 0.6, 0.5, 0.7];
+const ALPHA_BY_CHAPTER = [0.3, 0.35, 0.75, 0.3, 0.25, 0.3, 0.3, 0.5, 0.6, 0.6, 0.5, 0.7];
 function fieldAlpha(t: number) {
   const c = Math.max(0, Math.min(ALPHA_BY_CHAPTER.length - 1, Math.floor(t)));
   const next = Math.min(ALPHA_BY_CHAPTER.length - 1, c + 1);
@@ -149,7 +149,8 @@ export function NeuralField({ tier, still }: { tier: Tier; still: boolean }) {
         edgeAlpha={0.85}
         fogNear={9}
         fogFar={26}
-        maskFloor={0.1}
+        // Edges are additive and overlap by the dozen, so the floor must be tiny.
+        maskFloor={0.03}
       />
     </group>
   );

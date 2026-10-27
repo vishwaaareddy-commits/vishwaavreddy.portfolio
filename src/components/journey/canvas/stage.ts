@@ -68,6 +68,51 @@ export function fitToStage(
   return { visible, opacity, rect: r };
 }
 
+const projected = new THREE.Vector3();
+
+/**
+ * Positions an HTML label over a local point of `obj`, centred on it and
+ * offset by `dy` px. Hidden (display none) when it would leave the stage
+ * rect, so labels can never land on copy. Widths are measured once.
+ */
+export function placeLabel(
+  el: HTMLElement | undefined,
+  obj: THREE.Object3D,
+  local: THREE.Vector3,
+  camera: THREE.Camera,
+  size: { width: number; height: number },
+  rect: DOMRect | null,
+  opacity: number,
+  dy = 0,
+) {
+  if (!el) return;
+  if (!rect || opacity <= 0.01) {
+    el.style.display = "none";
+    return;
+  }
+  projected.copy(local).applyMatrix4(obj.matrixWorld).project(camera);
+  const x = (projected.x * 0.5 + 0.5) * size.width;
+  const y = (-projected.y * 0.5 + 0.5) * size.height + dy;
+  let w = Number(el.dataset.w);
+  let h = Number(el.dataset.h);
+  if (!w) {
+    el.style.display = "";
+    w = el.offsetWidth;
+    h = el.offsetHeight;
+    el.dataset.w = String(w);
+    el.dataset.h = String(h);
+  }
+  const inside = x - w / 2 >= rect.left && x + w / 2 <= rect.right && y - h / 2 >= rect.top && y + h / 2 <= rect.bottom;
+  el.style.display = inside ? "" : "none";
+  el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0) translate(-50%, -50%)`;
+  el.style.opacity = String(opacity);
+}
+
+/** Hides every registered label whose key starts with `prefix`. */
+export function hideLabels(registry: Map<string, HTMLElement>, prefix: string) {
+  for (const [key, el] of registry) if (key.startsWith(prefix)) el.style.display = "none";
+}
+
 /** Max copy rects passed to shaders (see MASK_GLSL). */
 export const MASK_MAX = 8;
 

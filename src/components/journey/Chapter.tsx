@@ -16,7 +16,7 @@ interface ChapterProps {
   children: ReactNode;
   /** Pin the section while its timeline scrubs. */
   pin?: boolean;
-  /** Pin length in viewport heights on desktop (mobile always uses 1). */
+  /** Pin length in viewport heights on desktop; phones use 60% of it. */
   length?: number;
   /** Set false when the mobile layout is taller than one screen and must scroll normally. */
   pinOnMobile?: boolean;
@@ -70,7 +70,7 @@ export function Chapter({
 
       const mobile = isMobileViewport();
       const pinned = pin && (pinOnMobile || !mobile);
-      const len = mobile ? 1 : length;
+      const len = mobile ? Math.max(0.3, length * 0.6) : length;
       const tl = gsap.timeline({
         defaults: { ease: "none" },
         scrollTrigger: {
