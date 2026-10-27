@@ -1,4 +1,5 @@
 import { ChapterSpy } from "@/components/journey/ChapterSpy";
+import { AboutChapter } from "@/components/journey/chapters/AboutChapter";
 import { ExperienceChapter } from "@/components/journey/chapters/ExperienceChapter";
 import { HeroChapter } from "@/components/journey/chapters/HeroChapter";
 import { ChapterPill } from "@/components/journey/chrome/ChapterPill";
@@ -11,7 +12,6 @@ import { SmoothScroll } from "@/components/journey/SmoothScroll";
 import { Footer } from "@/components/layout/Footer";
 import { HashScroll } from "@/components/layout/HashScroll";
 import { Header } from "@/components/layout/Header";
-import { About } from "@/components/sections/About";
 import { Archive } from "@/components/sections/Archive";
 import { Capabilities } from "@/components/sections/Capabilities";
 import { Contact } from "@/components/sections/Contact";
@@ -60,7 +60,7 @@ export default async function Home() {
         <Capabilities />
         <ExperienceChapter />
         <Archive />
-        <About />
+        <AboutChapter />
         <Contact />
       </main>
       <div className="relative z-10">
