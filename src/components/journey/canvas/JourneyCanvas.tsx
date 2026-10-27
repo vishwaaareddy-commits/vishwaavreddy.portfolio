@@ -104,7 +104,15 @@ function MaskSync() {
 function StillInvalidator() {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
-    const onChange = () => invalidate();
+    // Copy masks are found asynchronously (IntersectionObserver + a 1 s scan),
+    // so render a few trailing frames after each change, not just one.
+    let trailing: ReturnType<typeof setTimeout>[] = [];
+    const onChange = () => {
+      invalidate();
+      trailing.forEach(clearTimeout);
+      trailing = [150, 450, 1200].map((ms) => setTimeout(() => invalidate(), ms));
+    };
+    onChange();
     let seen = heroTraining.version;
     const poll = setInterval(() => {
       if (heroTraining.version !== seen) {
@@ -116,6 +124,7 @@ function StillInvalidator() {
     window.addEventListener("resize", onChange);
     return () => {
       clearInterval(poll);
+      trailing.forEach(clearTimeout);
       window.removeEventListener("scroll", onChange);
       window.removeEventListener("resize", onChange);
     };
