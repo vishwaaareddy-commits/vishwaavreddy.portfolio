@@ -11,7 +11,7 @@ export function Experience() {
           id="experience-title"
           index="009"
           eyebrow="Experience"
-          title="From data science to applied AI."
+          title="From data science to AI engineering."
           intro="Dates follow the certificates where they exist."
         />
         <div className="relative md:ml-[25%]">

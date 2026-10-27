@@ -1,4 +1,4 @@
-# Vishwaa Reddy — Applied AI Engineer portfolio
+# Vishwaa Reddy — AI Engineer & AI Automation portfolio
 
 Next.js (App Router) portfolio built around the **Inference Network**: an interactive
 React Three Fiber graph of the systems on the page, with scroll-driven GSAP diagrams for each case study.

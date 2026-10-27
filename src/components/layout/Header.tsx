@@ -39,7 +39,7 @@ export function Header() {
       <div className="shell relative flex h-16 items-center justify-between">
         <a href="#top" className="flex items-baseline gap-2 font-display text-sm font-semibold tracking-tight">
           <span>Vishwaa Reddy</span>
-          <span className="hidden font-mono text-[0.68rem] font-normal text-faint sm:inline">/ applied ai</span>
+          <span className="hidden font-mono text-[0.68rem] font-normal text-faint sm:inline">/ ai engineer</span>
         </a>
 
         <nav aria-label="Primary" className="hidden lg:block">

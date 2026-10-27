@@ -2,7 +2,7 @@
   "name": "vishwaa-reddy-portfolio",
   "version": "1.0.0",
   "private": true,
-  "description": "Portfolio of Vishwaa Reddy, Applied AI Engineer.",
+  "description": "Portfolio of Vishwaa Reddy, AI Engineer & AI Automation.",
   "scripts": {
     "media": "node scripts/media-manifest.mjs",
     "predev": "npm run media",
