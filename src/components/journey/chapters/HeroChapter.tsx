@@ -9,8 +9,11 @@ import { profile } from "@/data/profile";
 import { useJourney } from "@/store/journey";
 import { Chapter } from "../Chapter";
 
-const LINE_1 = "Applied AI";
-const LINE_2 = "Engineer";
+const LINE_1 = "AI Engineer";
+/** Line 2 is "& AI " in the display face, then the serif italic word. */
+const LINE_2_PLAIN = "& AI ";
+const LINE_2_SERIF = "Automation";
+const LINE_2 = LINE_2_PLAIN + LINE_2_SERIF;
 const TOTAL = LINE_1.length + LINE_2.length;
 /** One character per tick, like tokens streaming from a model. */
 const TOKEN_MS = 55;
@@ -26,10 +29,11 @@ function Generated({ count }: { count: number }) {
       {LINE_1.slice(0, count)}
       {count < LINE_1.length ? caret : null}
       <br />
+      {LINE_2_PLAIN.slice(0, second)}
       <span className="font-serif text-[1.12em] font-normal italic text-accent">
-        {LINE_2.slice(0, second)}
-        {count >= LINE_1.length ? caret : null}
+        {LINE_2_SERIF.slice(0, Math.max(0, second - LINE_2_PLAIN.length))}
       </span>
+      {count >= LINE_1.length ? caret : null}
     </span>
   );
 }
@@ -94,11 +98,11 @@ export function HeroChapter({ releaseLabel }: { releaseLabel: string }) {
             <span data-lift className="block font-mono text-sm font-normal uppercase tracking-[0.3em] text-soft">
               {profile.name}
             </span>
-            <span data-lift className="relative mt-5 block text-[3.1rem] font-semibold leading-[0.95] text-fg sm:text-7xl md:text-[3.6rem] lg:text-7xl xl:text-[6.2rem]">
+            <span data-lift className="relative mt-5 block text-[2.6rem] font-semibold leading-[0.98] text-fg sm:text-6xl md:text-[3rem] lg:text-6xl xl:text-[5.2rem]">
               <span className={typing ? "opacity-0" : undefined}>
-                Applied AI
+                AI Engineer
                 <br />
-                <span className="font-serif text-[1.12em] font-normal italic text-accent">Engineer</span>
+                &amp; AI <span className="font-serif text-[1.12em] font-normal italic text-accent">Automation</span>
               </span>
               {typing ? <Generated count={count} /> : null}
             </span>

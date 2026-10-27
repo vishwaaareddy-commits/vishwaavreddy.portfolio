@@ -23,8 +23,13 @@ function makeUniforms(count: number, opts: NetworkOptions) {
     /** Scroll wavefront position in depth units (0 input → 1 output). */
     uWave: { value: 0 },
     uAlpha: { value: 1 },
+    /** Contact finale: 0 → 1 pulls every neuron and edge into uConvergeTo (local units). */
+    uConverge: { value: 0 },
+    uConvergeTo: { value: new THREE.Vector3() },
     /** View-space distance where fog starts and where it is total. */
     uFog: { value: new THREE.Vector2(opts.fogNear ?? 1000, opts.fogFar ?? 2000) },
+    /** View distance range over which neurons right at the lens fade in (0,0 = off). */
+    uNear: { value: new THREE.Vector2(...(opts.nearFade ?? [0, 0])) },
     /** Visibility left inside copy rects (1 = unmasked). */
     uMaskFloor: { value: opts.maskFloor ?? 1 },
     uRadius: { value: opts.radius ?? 0.08 },
@@ -42,6 +47,12 @@ const COMMON = /* glsl */ `
   uniform float uActCount;
   uniform float uIgnite;
   uniform float uWave;
+  uniform float uConverge;
+  uniform vec3 uConvergeTo;
+  // Input layers set off first, the output layer last, so the pull reads as one forward sweep.
+  float converge(float depth) {
+    return smoothstep(depth * 0.35, depth * 0.35 + 0.65, uConverge);
+  }
   float act(float index) {
     return texture2D(uAct, vec2((index + 0.5) / uActCount, 0.5)).r;
   }
@@ -56,12 +67,14 @@ const COMMON = /* glsl */ `
 
 const FRAG_COMMON = /* glsl */ `
   uniform vec2 uFog;
+  uniform vec2 uNear;
   uniform float uMaskFloor;
   uniform float uAlpha;
   ${MASK_GLSL}
   float fog(float viewZ) {
     // Far layers fade into the dark; anything right at the lens fades too.
-    return (1.0 - smoothstep(uFog.x, uFog.y, viewZ)) * smoothstep(1.5, 4.5, viewZ);
+    float near = uNear.y > 0.0 ? smoothstep(uNear.x, uNear.y, viewZ) : 1.0;
+    return (1.0 - smoothstep(uFog.x, uFog.y, viewZ)) * near;
   }
 `;
 
@@ -81,8 +94,12 @@ const neuronVert = /* glsl */ `
     vAct = a;
     vIgnite = ignite(aDepth);
     vWave = wave(aDepth);
-    float s = uRadius * (0.75 + 0.6 * abs(a) * vIgnite);
-    vec4 mv = modelViewMatrix * instanceMatrix * vec4(position * s, 1.0);
+    float k = converge(aDepth);
+    float s = uRadius * (0.75 + 0.6 * abs(a) * vIgnite) * (1.0 - 0.8 * k);
+    vec3 center = (instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+    vec4 local = instanceMatrix * vec4(position * s, 1.0);
+    local.xyz += (uConvergeTo - center) * k;
+    vec4 mv = modelViewMatrix * local;
     vNormal = normalize(normalMatrix * mat3(instanceMatrix) * normal);
     vView = normalize(-mv.xyz);
     vViewZ = -mv.z;
@@ -138,8 +155,11 @@ const edgeVert = /* glsl */ `
   varying float vPhase;
   varying float vViewZ;
   void main() {
-    vec4 a = projectionMatrix * modelViewMatrix * vec4(aStart, 1.0);
-    vec4 b = projectionMatrix * modelViewMatrix * vec4(aEnd, 1.0);
+    float k = converge(aDepth);
+    vec3 start = mix(aStart, uConvergeTo, k);
+    vec3 end = mix(aEnd, uConvergeTo, k);
+    vec4 a = projectionMatrix * modelViewMatrix * vec4(start, 1.0);
+    vec4 b = projectionMatrix * modelViewMatrix * vec4(end, 1.0);
     vec2 sa = a.xy / a.w;
     vec2 sb = b.xy / b.w;
     vec2 dir = (sb - sa) * uViewport;
@@ -158,7 +178,7 @@ const edgeVert = /* glsl */ `
     vDst = act(aDst);
     vGate = ignite(aDepth) * (0.45 + 0.9 * wave(aDepth));
     vPhase = aPhase;
-    vViewZ = -(modelViewMatrix * vec4(mix(aStart, aEnd, t), 1.0)).z;
+    vViewZ = -(modelViewMatrix * vec4(mix(start, end, t), 1.0)).z;
   }
 `;
 
@@ -202,6 +222,8 @@ export interface NetworkOptions {
   edgeAlpha?: number;
   fogNear?: number;
   fogFar?: number;
+  /** Fade neurons this close to the camera (background field only). */
+  nearFade?: [number, number];
   maskFloor?: number;
 }
 

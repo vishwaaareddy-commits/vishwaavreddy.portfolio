@@ -44,13 +44,13 @@ const tagline = "LLM tooling, computer vision and automation agents that ship in
 
 export default async function OpengraphImage() {
   const domain = profile.siteUrl.replace("https://", "");
-  const sansText = `${profile.name.toUpperCase()}Applied AI${tagline}${domain}`;
+  const sansText = `${profile.name.toUpperCase()}AI Engineer& AI ${tagline}${domain}`;
   // Every string gets an explicit font; otherwise the renderer falls back to
   // whichever font is loaded and serif glyphs leak into the sans text.
   const [serif, sans, sansBold] = await Promise.all([
     loadFont("Instrument+Serif", "ital@1", "Engineer"),
     loadFont("Inter", "wght@400", sansText),
-    loadFont("Inter", "wght@700", "Applied AI"),
+    loadFont("Inter", "wght@700", "AI Engineer& "),
   ]);
   const fonts = [
     ...(sans ? [{ name: "Inter", data: sans, weight: 400 as const, style: "normal" as const }] : []),
@@ -93,20 +93,22 @@ export default async function OpengraphImage() {
 
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 72px", width: 640 }}>
           <div style={{ fontSize: 22, letterSpacing: 8, color: "#a3adbb", textTransform: "uppercase" }}>{profile.name}</div>
-          <div style={{ display: "flex", flexDirection: "column", marginTop: 22, fontSize: 92, fontWeight: 700, lineHeight: 1 }}>
-            <span>Applied AI</span>
-            <span
-              style={{
-                color: "#3be3f5",
-                fontFamily: serif ? "Instrument Serif" : "serif",
-                fontStyle: "italic",
-                fontWeight: 400,
-                fontSize: 104,
-                marginTop: 6,
-              }}
-            >
-              Engineer
-            </span>
+          <div style={{ display: "flex", flexDirection: "column", marginTop: 22, fontSize: 80, fontWeight: 700, lineHeight: 1 }}>
+            <span>AI Engineer</span>
+            <div style={{ display: "flex", alignItems: "baseline", marginTop: 8 }}>
+              <span>&amp; AI&nbsp;</span>
+              <span
+                style={{
+                  color: "#3be3f5",
+                  fontFamily: serif ? "Instrument Serif" : "serif",
+                  fontStyle: "italic",
+                  fontWeight: 400,
+                  fontSize: 92,
+                }}
+              >
+                Automation
+              </span>
+            </div>
           </div>
           <div style={{ fontSize: 26, color: "#a3adbb", marginTop: 26, lineHeight: 1.4 }}>
             {tagline}

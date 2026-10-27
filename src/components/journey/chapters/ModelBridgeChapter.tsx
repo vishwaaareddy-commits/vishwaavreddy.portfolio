@@ -48,6 +48,8 @@ const register = (key: string) => (el: HTMLElement | null) => {
 
 interface ModelBridgeChapterProps {
   study: CaseStudy;
+  /** True only when PyPI lists installable files; until then no install command is shown. */
+  installable: boolean;
   usageExample?: string;
   /** PyPI button, badge and counter — only rendered once a release installs. */
   endSlot: ReactNode;
@@ -59,7 +61,7 @@ interface ModelBridgeChapterProps {
  * routed SDK → gateway → OpenRouter → Gemini. The terminal (left) types the
  * call and then streams the reply token by token in sync with the scroll.
  */
-export function ModelBridgeChapter({ study, usageExample, endSlot }: ModelBridgeChapterProps) {
+export function ModelBridgeChapter({ study, installable, usageExample, endSlot }: ModelBridgeChapterProps) {
   const code = usageExample ?? usageSketch;
   const { scene3D, lowPhone } = useScene3D();
   const flat = !scene3D || lowPhone;
@@ -141,13 +143,17 @@ export function ModelBridgeChapter({ study, usageExample, endSlot }: ModelBridge
                 <p className="font-mono text-[0.65rem] text-faint">modelbridge-sdk</p>
               </div>
               <div className="space-y-3 p-4 font-mono text-[0.74rem] leading-relaxed">
-                <div className="flex items-start justify-between gap-3 text-fg">
-                  <span className="flex gap-2">
-                    <span className="select-none text-accent">$</span>
-                    <Typed name="pip" text={PIP} />
-                  </span>
-                  <CopyButton command={PIP} />
-                </div>
+                {installable ? (
+                  <div className="flex items-start justify-between gap-3 text-fg">
+                    <span className="flex gap-2">
+                      <span className="select-none text-accent">$</span>
+                      <Typed name="pip" text={PIP} />
+                    </span>
+                    <CopyButton command={PIP} />
+                  </div>
+                ) : (
+                  <p className="text-soft">Install instructions coming with the public release.</p>
+                )}
                 <pre className="hidden max-h-[18vh] overflow-hidden text-soft md:block">
                   <code>
                     <Typed name="code" text={code} />
@@ -177,8 +183,9 @@ export function ModelBridgeChapter({ study, usageExample, endSlot }: ModelBridge
             aria-label={`Illustrative attention over the prompt tokens ${PROMPT_TOKENS.map((t) => `"${t.trim()}"`).join(", ")} across three heads, then the request routed ${ROUTE.join(" → ")} and streamed back.`}
             className="relative h-[34svh] md:col-span-6 md:h-[72vh] lg:col-span-7"
           >
-            <p className="absolute left-0 top-0 font-mono text-[0.62rem] text-faint">
-              illustrative attention · <span ref={register("att-head")} className="text-soft" />
+            <p className="absolute left-0 top-0 font-mono text-[0.6rem] uppercase tracking-wider text-faint">illustrative</p>
+            <p className="absolute right-0 top-0 font-mono text-[0.62rem] text-soft">
+              <span ref={register("att-head")} />
             </p>
             {flat ? <AttentionFallback still={!scene3D} /> : null}
           </div>

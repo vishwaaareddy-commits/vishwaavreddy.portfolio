@@ -21,6 +21,8 @@ const INPUT_SCALE = 2;
  */
 export function HeroNet({ still }: { still: boolean }) {
   const outer = useRef<THREE.Group>(null);
+  // The canvas can mount after ignition (it loads when idle): sweep from whichever is later.
+  const mountedAt = useRef(performance.now());
   const inner = useRef<THREE.Group>(null);
   const net = useRef<NetworkHandle>(null);
   const seen = useRef(-1);
@@ -68,7 +70,7 @@ export function HeroNet({ still }: { still: boolean }) {
     const { ignited, ignitedAt } = useJourney.getState();
     const u = h.uniforms;
     u.uTime.value = time;
-    u.uIgnite.value = still ? 10 : ignited ? (performance.now() - ignitedAt) / 1000 : 0;
+    u.uIgnite.value = still ? 10 : ignited ? (performance.now() - Math.max(ignitedAt, mountedAt.current)) / 1000 : 0;
     // A forward pass sweeping input → output, repeating.
     u.uWave.value = still ? 0.5 : ((time * 0.35) % 1.4) - 0.2;
     u.uAlpha.value = fit.opacity;

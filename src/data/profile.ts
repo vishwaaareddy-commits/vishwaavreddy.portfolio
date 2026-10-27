@@ -1,6 +1,6 @@
 export const profile = {
   name: "Vishwaa Reddy",
-  title: "Applied AI Engineer",
+  title: "AI Engineer & AI Automation",
   statement:
     "I build AI that ships into real businesses — LLM tooling, computer vision and automation agents, wired into the payments, queues and databases that make them useful.",
   tagline: "Building practical AI systems, integrations, automation and intelligent applications.",

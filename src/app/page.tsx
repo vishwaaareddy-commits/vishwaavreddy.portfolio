@@ -1,4 +1,7 @@
 import { ChapterSpy } from "@/components/journey/ChapterSpy";
+import { AboutChapter } from "@/components/journey/chapters/AboutChapter";
+import { ContactChapter } from "@/components/journey/chapters/ContactChapter";
+import { ExperienceChapter } from "@/components/journey/chapters/ExperienceChapter";
 import { HeroChapter } from "@/components/journey/chapters/HeroChapter";
 import { ChapterPill } from "@/components/journey/chrome/ChapterPill";
 import { Cursor } from "@/components/journey/chrome/Cursor";
@@ -10,11 +13,8 @@ import { SmoothScroll } from "@/components/journey/SmoothScroll";
 import { Footer } from "@/components/layout/Footer";
 import { HashScroll } from "@/components/layout/HashScroll";
 import { Header } from "@/components/layout/Header";
-import { About } from "@/components/sections/About";
 import { Archive } from "@/components/sections/Archive";
 import { Capabilities } from "@/components/sections/Capabilities";
-import { Contact } from "@/components/sections/Contact";
-import { Experience } from "@/components/sections/Experience";
 import { MoreBuilds } from "@/components/sections/MoreBuilds";
 import { ProofStrip } from "@/components/sections/ProofStrip";
 import { SelectedWork } from "@/components/sections/SelectedWork";
@@ -58,10 +58,10 @@ export default async function Home() {
         <SelectedWork release={release} />
         <MoreBuilds />
         <Capabilities />
-        <Experience />
+        <ExperienceChapter />
         <Archive />
-        <About />
-        <Contact />
+        <AboutChapter />
+        <ContactChapter />
       </main>
       <div className="relative z-10">
         <Footer />

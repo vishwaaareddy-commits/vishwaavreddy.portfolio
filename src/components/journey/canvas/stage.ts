@@ -113,6 +113,18 @@ export function hideLabels(registry: Map<string, HTMLElement>, prefix: string) {
   for (const [key, el] of registry) if (key.startsWith(prefix)) el.style.display = "none";
 }
 
+/**
+ * Visibility of a stage from its own rect: 1 once it is well on screen,
+ * easing to 0 only as it leaves. Never tied to scroll progress, so a stage
+ * is never empty while its section is visible.
+ */
+export function stageFade(fit: StageFit, size: { height: number }) {
+  if (!fit.visible || !fit.rect) return 0;
+  const r = fit.rect;
+  const onScreen = Math.min(r.bottom, size.height) - Math.max(r.top, 0);
+  return Math.min(1, Math.max(0, onScreen / Math.min(r.height, 160))) * fit.opacity;
+}
+
 /** Max copy rects passed to shaders (see MASK_GLSL). */
 export const MASK_MAX = 8;
 
@@ -125,7 +137,7 @@ export const maskUniforms = {
   uDpr: { value: 1 },
 };
 
-/** GLSL: 1 in the open, falling to `floor` inside any copy rect (soft edge from 40px outside to 48px inside). */
+/** GLSL: 1 in the open, `floor` anywhere inside a copy rect; the soft edge lies entirely outside it (56px). */
 export const MASK_GLSL = /* glsl */ `
   uniform vec4 uMask[${MASK_MAX}];
   uniform int uMaskCount;
@@ -139,7 +151,7 @@ export const MASK_GLSL = /* glsl */ `
       vec4 r = uMask[i];
       vec2 d = max(r.xy - p, p - r.zw);
       float dist = max(d.x, d.y);
-      inside = max(inside, 1.0 - smoothstep(-48.0, 40.0, dist));
+      inside = max(inside, 1.0 - smoothstep(0.0, 56.0, dist));
     }
     return mix(1.0, floorValue, inside);
   }

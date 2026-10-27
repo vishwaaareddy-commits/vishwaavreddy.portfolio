@@ -3,8 +3,8 @@ import { archive } from "@/data/projects";
 
 export function Archive() {
   return (
-    <section aria-labelledby="archive-title" className="border-t border-line bg-ink-2">
-      <div className="shell py-16 md:py-20">
+    <section aria-labelledby="archive-title" className="relative z-10 border-t border-line">
+      <div data-copy className="shell py-16 md:py-20">
         <details className="group">
           <summary className="flex cursor-pointer list-none items-center justify-between gap-4 [&::-webkit-details-marker]:hidden">
             <div>

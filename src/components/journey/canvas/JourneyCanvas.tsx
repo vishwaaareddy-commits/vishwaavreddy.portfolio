@@ -4,17 +4,18 @@ import { AdaptiveDpr, PerformanceMonitor } from "@react-three/drei";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Bloom, ChromaticAberration, EffectComposer, Noise, Vignette } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import { heroTraining } from "@/components/journey/training/protocol";
 import { pointer, useJourney, type Tier } from "@/store/journey";
-import { FinaleScene } from "./FinaleScene";
 import { EmbeddingCloud } from "./neural/EmbeddingCloud";
 import { HeroNet } from "./neural/HeroNet";
 import { NeuralField } from "./neural/NeuralField";
 import { AttentionScene } from "./scenes/AttentionScene";
 import { ConvScene } from "./scenes/ConvScene";
 import { FlowGraph } from "./scenes/FlowGraph";
+import { LossScene } from "./scenes/LossScene";
+import { OutputNeuron } from "./scenes/OutputNeuron";
 import { AUTO_EDGES, AUTO_NODES, QA_AGENTS, QA_EDGES, QA_NODES } from "@/data/flows";
 import { disposeCopyMask, updateCopyMask } from "./stage";
 
@@ -103,7 +104,15 @@ function MaskSync() {
 function StillInvalidator() {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
-    const onChange = () => invalidate();
+    // Copy masks are found asynchronously (IntersectionObserver + a 1 s scan),
+    // so render a few trailing frames after each change, not just one.
+    let trailing: ReturnType<typeof setTimeout>[] = [];
+    const onChange = () => {
+      invalidate();
+      trailing.forEach(clearTimeout);
+      trailing = [150, 450, 1200].map((ms) => setTimeout(() => invalidate(), ms));
+    };
+    onChange();
     let seen = heroTraining.version;
     const poll = setInterval(() => {
       if (heroTraining.version !== seen) {
@@ -115,11 +124,39 @@ function StillInvalidator() {
     window.addEventListener("resize", onChange);
     return () => {
       clearInterval(poll);
+      trailing.forEach(clearTimeout);
       window.removeEventListener("scroll", onChange);
       window.removeEventListener("resize", onChange);
     };
   }, [invalidate]);
   return null;
+}
+
+/**
+ * Mounts a chapter scene only once its stage has come within about a
+ * viewport of the screen, then keeps it. Spreads three.js setup and shader
+ * compiles across the scroll instead of all at load.
+ */
+function WhenNear({ stage, children }: { stage: string; children: ReactNode }) {
+  const [near, setNear] = useState(false);
+  useEffect(() => {
+    if (near) return;
+    let io: IntersectionObserver | null = null;
+    // Stages can mount after the canvas (chapters remount for 3D): look again until found.
+    const find = () => {
+      const el = document.querySelector(`[data-stage="${stage}"]`);
+      if (!el) return false;
+      io = new IntersectionObserver(([e]) => e.isIntersecting && setNear(true), { rootMargin: "100% 0px" });
+      io.observe(el);
+      return true;
+    };
+    const retry = find() ? undefined : setInterval(() => find() && clearInterval(retry), 500);
+    return () => {
+      clearInterval(retry);
+      io?.disconnect();
+    };
+  }, [stage, near]);
+  return near ? <>{children}</> : null;
 }
 
 /** Bloom on emissive parts only (luminance threshold), grain and vignette; CA on desktop. */
@@ -210,16 +247,43 @@ export default function JourneyCanvas({ mobile, still }: JourneyCanvasProps) {
       <MaskSync />
       <NeuralField tier={tier} still={still} />
       <HeroNet still={still} />
-      {still ? null : <EmbeddingCloud tier={tier} />}
-      {/* Phones on the low tier get the SVG attention view instead. */}
-      {still || (mobile && tier === "low") ? null : <AttentionScene />}
-      {still ? null : <ConvScene />}
       {still ? null : (
-        <FlowGraph chapter={5} stage="qa" prefix="qa-" nodes={QA_NODES} edges={QA_EDGES} agents={QA_AGENTS} content={{ w: 7.4, h: 2.5 }} />
+        <WhenNear stage="embeddings">
+          <EmbeddingCloud tier={tier} />
+        </WhenNear>
       )}
-      {still ? null : <FlowGraph chapter={6} stage="automation" prefix="auto-" nodes={AUTO_NODES} edges={AUTO_EDGES} content={{ w: 5.8, h: 2.1 }} />}
+      {/* Phones on the low tier get the SVG attention view instead. */}
+      {still || (mobile && tier === "low") ? null : (
+        <WhenNear stage="attention">
+          <AttentionScene />
+        </WhenNear>
+      )}
+      {still ? null : (
+        <WhenNear stage="ocr">
+          <ConvScene />
+        </WhenNear>
+      )}
+      {still ? null : (
+        <WhenNear stage="loss">
+          <LossScene />
+        </WhenNear>
+      )}
+      {still ? null : (
+        <WhenNear stage="output">
+          <OutputNeuron />
+        </WhenNear>
+      )}
+      {still ? null : (
+        <WhenNear stage="qa">
+          <FlowGraph chapter={5} stage="qa" prefix="qa-" nodes={QA_NODES} edges={QA_EDGES} agents={QA_AGENTS} content={{ w: 7.4, h: 2.5 }} />
+        </WhenNear>
+      )}
+      {still ? null : (
+        <WhenNear stage="automation">
+          <FlowGraph chapter={6} stage="automation" prefix="auto-" nodes={AUTO_NODES} edges={AUTO_EDGES} content={{ w: 5.8, h: 2.1 }} />
+        </WhenNear>
+      )}
       {/* Desktop-only scenes; phones and reduced motion get the CSS versions. */}
-      {still || mobile ? null : <FinaleScene />}
       {tier === "low" || still ? null : <Effects mobile={mobile} />}
     </Canvas>
   );

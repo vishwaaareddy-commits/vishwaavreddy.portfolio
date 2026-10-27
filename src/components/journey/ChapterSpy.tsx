@@ -8,11 +8,11 @@ import { CHAPTERS, useJourney } from "@/store/journey";
 /**
  * Journey position for sections that are not pinned chapters (05 onward):
  * reports the current chapter and keeps `t` advancing, so no chapter scene
- * can stay on screen past its own range. Also drives the contact finale.
+ * can stay on screen past its own range.
  */
 export function ChapterSpy() {
   useEffect(() => {
-    const { setChapter, setT, setFinale } = useJourney.getState();
+    const { setChapter, setT } = useJourney.getState();
     const reduced = prefersReducedMotion();
     const triggers: ScrollTrigger[] = [];
 
@@ -37,21 +37,6 @@ export function ChapterSpy() {
           onLeave: () => setT(c.index + 1),
           onEnterBack: (self) => setT(c.index + self.progress),
           onLeaveBack: () => setT(c.index),
-        }),
-      );
-    }
-
-    // Finale: from the contact heading entering the screen to it nearing the top.
-    const heading = document.getElementById("contact-title");
-    if (heading && !reduced) {
-      triggers.push(
-        ScrollTrigger.create({
-          trigger: heading,
-          start: "top bottom",
-          end: "top 22%",
-          onUpdate: (self) => setFinale(self.progress),
-          onLeaveBack: () => setFinale(0),
-          onLeave: () => setFinale(1),
         }),
       );
     }

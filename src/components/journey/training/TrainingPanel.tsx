@@ -1,8 +1,9 @@
 "use client";
 
-import { RotateCcw } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createActivations, createMlp, forward, unflatten } from "@/lib/mlp";
 import { prefersReducedMotion } from "@/lib/motion";
+import { HERO_SIZES } from "@/lib/trainer";
 import { useJourney } from "@/store/journey";
 import { heroTraining, type TrainerMessage, type TrainerReply } from "./protocol";
 
@@ -11,7 +12,7 @@ const VIOLET: [number, number, number] = [139, 108, 255];
 const CYAN: [number, number, number] = [59, 227, 245];
 const INK: [number, number, number] = [7, 9, 13];
 
-/** Probability → colour: violet (class 0) ↔ cyan (class 1), dark at the boundary. */
+/** Probability → colour: violet (spiral A) ↔ teal (spiral B), dark at the boundary. */
 function paintGrid(grid: Float32Array, res: number, small: HTMLCanvasElement) {
   const ctx = small.getContext("2d")!;
   const img = ctx.createImageData(res, res);
@@ -60,18 +61,39 @@ function draw(
   }
 }
 
+/** Plain-language status from accuracy (0–1). */
+function statusFor(acc: number, started: boolean) {
+  if (!started || acc < 0.6) return { text: "guessing…", tone: "text-faint" };
+  if (acc <= 0.95) return { text: "learning…", tone: "text-warn" };
+  return { text: "learned ✓", tone: "text-accent" };
+}
+
+/** The same network on the main thread, for the hover read-out. */
+const probeNet = createMlp(HERO_SIZES, 1);
+const probeActs = createActivations(HERO_SIZES);
+function predict(x: number, y: number) {
+  if (!heroTraining.params) return null;
+  unflatten(heroTraining.params, probeNet);
+  probeActs[0][0] = x * 2;
+  probeActs[0][1] = y * 2;
+  return forward(probeNet, probeActs, "sigmoid")[0];
+}
+
 /**
- * Chapter 01 visual: a real 2-16-16-1 network training in a Web Worker on
- * two spirals, with its decision boundary redrawn every ~10 steps. The 3D
- * network above it (data-stage="hero") mirrors the same weights.
+ * Chapter 01 visual: a real 2-16-16-1 network learning to separate two
+ * spirals in a Web Worker, explained in plain words. Training starts when
+ * the hero is on screen; the decision boundary is redrawn every ~10 steps.
+ * The 3D network above it (data-stage="hero") mirrors the same weights.
  */
 export function TrainingPanel() {
   const ignited = useJourney((s) => s.ignited);
   const root = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const probe = useRef<HTMLSpanElement>(null);
-  const stats = useRef<HTMLParagraphElement>(null);
-  const worker = useRef<Worker | null>(null);
+  const tip = useRef<HTMLSpanElement>(null);
+  const status = useRef<HTMLSpanElement>(null);
+  const accuracy = useRef<HTMLParagraphElement>(null);
+  const details = useRef<HTMLSpanElement>(null);
   const [seed, setSeed] = useState(2026);
   const [done, setDone] = useState(false);
 
@@ -81,10 +103,18 @@ export function TrainingPanel() {
     if (!el) return;
     const instant = prefersReducedMotion();
     const w = new Worker(new URL("./train.worker.ts", import.meta.url), { type: "module" });
-    worker.current = w;
     const small = document.createElement("canvas");
     let data: { points: Float32Array; labels: Uint8Array } | null = null;
     let painted = false;
+    const showStatus = (acc: number, started: boolean) => {
+      const s = statusFor(acc, started);
+      if (status.current) {
+        status.current.textContent = s.text;
+        status.current.className = s.tone;
+      }
+      if (accuracy.current) accuracy.current.textContent = started ? `accuracy ${Math.round(acc * 100)}%` : "accuracy —";
+    };
+    showStatus(0, false);
 
     w.onmessage = (e: MessageEvent<TrainerReply>) => {
       const msg = e.data;
@@ -98,9 +128,8 @@ export function TrainingPanel() {
       heroTraining.acc = msg.acc;
       heroTraining.done = msg.done;
       heroTraining.version += 1;
-      if (stats.current) {
-        stats.current.textContent = `step ${String(msg.step).padStart(3, "0")}  loss ${msg.loss.toFixed(3)}  acc ${(msg.acc * 100).toFixed(1)}%`;
-      }
+      showStatus(msg.acc, msg.step > 0);
+      if (details.current) details.current.textContent = `step ${msg.step} · loss ${msg.loss.toFixed(3)}`;
       if (msg.grid) {
         small.width = small.height = msg.res;
         paintGrid(msg.grid, msg.res, small);
@@ -110,11 +139,9 @@ export function TrainingPanel() {
       if (msg.done) setDone(true);
     };
     draw(el, painted ? small : null, data);
-    setDone(false);
 
-    // Train only while the hero is on screen.
-    const start: TrainerMessage = { type: "start", seed, instant, paused: false };
-    w.postMessage(start);
+    // Loaded paused: training starts when the hero is on screen and pauses when it leaves.
+    w.postMessage({ type: "start", seed, instant, paused: !instant } satisfies TrainerMessage);
     const io = new IntersectionObserver(([entry]) =>
       w.postMessage({ type: entry.isIntersecting ? "resume" : "pause" } satisfies TrainerMessage),
     );
@@ -122,15 +149,15 @@ export function TrainingPanel() {
     return () => {
       io.disconnect();
       w.terminate();
-      worker.current = null;
     };
   }, [ignited, seed]);
 
-  // The probe point: follows the pointer over the plot, otherwise orbits slowly.
+  // The probe point: follows the pointer over the plot (with a read-out), otherwise orbits slowly.
   useEffect(() => {
     const el = canvas.current;
     const dot = probe.current;
-    if (!el || !dot) return;
+    const label = tip.current;
+    if (!el || !dot || !label) return;
     let hover = false;
     let frame = 0;
     const place = () => {
@@ -151,8 +178,17 @@ export function TrainingPanel() {
       heroTraining.probe.x = ((e.clientX - r.left) / r.width) * 2 - 1;
       heroTraining.probe.y = 1 - ((e.clientY - r.top) / r.height) * 2;
       place();
+      const p = predict(heroTraining.probe.x, heroTraining.probe.y);
+      label.textContent =
+        p === null
+          ? "the network hasn't started yet"
+          : `the network thinks: spiral ${p >= 0.5 ? "B" : "A"} (${Math.round((p >= 0.5 ? p : 1 - p) * 100)}%)`;
+      label.style.opacity = "1";
     };
-    const onLeave = () => (hover = false);
+    const onLeave = () => {
+      hover = false;
+      label.style.opacity = "0";
+    };
     el.addEventListener("pointermove", onMove);
     el.addEventListener("pointerleave", onLeave);
     if (prefersReducedMotion()) place();
@@ -166,46 +202,73 @@ export function TrainingPanel() {
 
   return (
     <div ref={root} data-copy className="w-full max-w-[34rem]">
+      <p className="font-display text-lg font-semibold text-fg">Watch a neural network learn</p>
+      <p className="mt-1 max-w-md text-sm leading-snug text-soft">
+        Two spirals of dots. The network starts by guessing, then learns the boundary between them, live in your browser.
+      </p>
       {/* Empty stage the 3D 2-16-16-1 network is fitted into. */}
-      <div data-stage="hero" aria-hidden className="h-[16svh] w-full md:h-[24vh]" />
-      <div className="mt-3 flex items-start gap-5 md:flex-col md:gap-3 lg:flex-row lg:gap-5">
-        <figure className="relative shrink-0 overflow-hidden rounded-sm border border-line" style={{ width: SIZE, height: SIZE }}>
+      <div data-stage="hero" aria-hidden className="mt-2 h-[13svh] w-full md:h-[18vh]" />
+      <div className="mt-2 flex items-start gap-5 pb-5 md:flex-col md:gap-3 lg:flex-row lg:gap-5">
+        <figure className="relative shrink-0 rounded-sm border border-line" style={{ width: SIZE, height: SIZE }}>
           <canvas
             ref={canvas}
             role="img"
-            aria-label="Decision boundary of a 2-16-16-1 neural network learning to separate two interleaved spirals of points, cyan against violet. It is retrained live in your browser."
+            aria-label="Two interleaved spirals of dots, purple (spiral A) and teal (spiral B). The background colour is what a small neural network predicts at each point; it starts as a guess and learns the boundary live in your browser."
             style={{ width: SIZE, height: SIZE }}
-            className="block"
+            className="block cursor-crosshair"
           />
           <span
             ref={probe}
             aria-hidden
             className="pointer-events-none absolute left-0 top-0 -ml-[7px] -mt-[7px] size-3.5 rounded-full border border-white/90 shadow-[0_0_10px_rgba(255,255,255,0.6)]"
           />
+          {/* Hover read-out: its own reserved line under the plot, so it never covers anything. */}
+          <span
+            ref={tip}
+            aria-hidden
+            className="pointer-events-none absolute left-0 top-full mt-1.5 whitespace-nowrap font-mono text-[0.62rem] text-fg opacity-0 transition-opacity duration-150"
+          />
         </figure>
-        <div className="min-w-0 pt-1 font-mono text-[0.66rem] leading-relaxed text-faint">
-          <p className="text-accent">● live</p>
-          <p ref={stats} aria-live="off" className="mt-1 whitespace-pre-wrap text-soft">
-            step 000 loss — acc —
+        <div className="min-w-0 pt-1 font-mono text-[0.68rem] leading-relaxed text-soft">
+          <p aria-live="polite" className="text-sm">
+            <span ref={status} className="text-faint">
+              guessing…
+            </span>
           </p>
-          <p className="mt-3">2 spirals · 200 points</p>
-          <p>tanh · Adam · full batch</p>
-          <p className="mt-1 hidden sm:block">hover the plot to probe it</p>
+          <p ref={accuracy} className="text-fg">
+            accuracy —
+          </p>
+          <ul className="mt-3 space-y-1 text-faint">
+            <li className="flex items-center gap-2">
+              <span aria-hidden className="size-2 rounded-full bg-[#a891ff]" /> spiral A
+            </li>
+            <li className="flex items-center gap-2">
+              <span aria-hidden className="size-2 rounded-full bg-[#3be3f5]" /> spiral B
+            </li>
+            <li>background = what the network predicts</li>
+          </ul>
           <button
             type="button"
-            onClick={() => setSeed((s) => s + 1)}
+            onClick={() => {
+              setDone(false);
+              setSeed((s) => s + 1);
+            }}
             disabled={!done}
             data-cursor
             className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-line-strong px-2.5 py-1 text-soft transition-colors duration-300 hover:border-accent hover:text-accent disabled:opacity-40"
           >
-            <RotateCcw className="size-3" aria-hidden />
-            retrain
+            ↻ watch again
           </button>
+          <details className="mt-3 text-faint">
+            <summary className="cursor-pointer list-none hover:text-soft [&::-webkit-details-marker]:hidden">+ details</summary>
+            <p className="mt-1">
+              <span ref={details}>step 0</span>
+              <br />
+              2-16-16-1 · tanh · Adam · full batch
+            </p>
+          </details>
         </div>
       </div>
-      <p className="mt-3 font-mono text-[0.66rem] text-faint">
-        Live: a 2-16-16-1 network training in your browser.
-      </p>
     </div>
   );
 }

@@ -8,7 +8,7 @@
   --color-line-strong: rgb(148 163 184 / 0.26);
   --color-fg: #eef1f5;
   --color-soft: #a3adbb;
-  --color-faint: #6b7686;
+  --color-faint: #7c8798;
   --color-accent: #3be3f5;
   --color-accent-dim: rgb(59 227 245 / 0.14);
   --color-warn: #f5b13b;
@@ -188,26 +188,6 @@
   .journey-cursor[data-state="text"],
   .journey-cursor[data-state="hidden"] {
     opacity: 0;
-  }
-}
-
-/* Phone finale: a slow, dim orbit behind the contact heading. */
-.finale-ring {
-  position: absolute;
-  left: 50%;
-  top: 7.5rem;
-  width: 22rem;
-  height: 7rem;
-  margin-left: -11rem;
-  border-radius: 9999px;
-  border: 1px dashed rgb(59 227 245 / 0.35);
-  opacity: 0.15;
-  pointer-events: none;
-  animation: finale-orbit 24s linear infinite;
-}
-@keyframes finale-orbit {
-  to {
-    transform: rotate(360deg);
   }
 }
 

@@ -45,12 +45,33 @@ export function TrainingHud() {
   const accEl = useRef<HTMLSpanElement>(null);
   const lrEl = useRef<HTMLSpanElement>(null);
   const path = useRef<SVGPathElement>(null);
+  const box = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let frame = 0;
     let shown = -1;
+    // Hidden over any copy block (data-copy) and while the hero, which shows the real training, is on screen.
+    const avoid = () => {
+      const el = box.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      if (r.width === 0) return;
+      const hero = document.getElementById("top")?.getBoundingClientRect();
+      let blocked = !!hero && hero.bottom > r.bottom;
+      if (!blocked) {
+        for (const c of document.querySelectorAll<HTMLElement>("[data-copy]")) {
+          const q = c.getBoundingClientRect();
+          if (q.right > r.left && q.left < r.right && q.bottom > r.top && q.top < r.bottom) {
+            blocked = true;
+            break;
+          }
+        }
+      }
+      el.style.visibility = blocked ? "hidden" : "";
+    };
     const update = () => {
       frame = 0;
+      avoid();
       const max = document.documentElement.scrollHeight - window.innerHeight;
       const p = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
       const e = 1 + Math.round(p * (EPOCHS - 1));
@@ -79,9 +100,10 @@ export function TrainingHud() {
 
   return (
     <div
+      ref={box}
       role="img"
       aria-label="Decorative training readout: the epoch counts how far you have scrolled; loss falls and accuracy rises along a fixed curve."
-      className={`pointer-events-none fixed right-[34px] top-[96px] z-40 hidden items-center gap-3 rounded-sm border border-line bg-ink/70 px-2.5 py-1.5 font-mono text-[0.6rem] tabular-nums text-faint backdrop-blur transition-opacity duration-700 md:flex ${
+      className={`pointer-events-none fixed right-[34px] top-[96px] z-40 hidden items-center gap-3 rounded-sm border border-line bg-ink px-2.5 py-1.5 font-mono text-[0.6rem] tabular-nums text-faint backdrop-blur transition-opacity duration-700 md:flex ${
         ignited ? "opacity-100" : "opacity-0"
       }`}
     >

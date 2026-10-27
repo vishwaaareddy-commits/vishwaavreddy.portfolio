@@ -23,7 +23,7 @@ const jetbrains = JetBrains_Mono({
 });
 
 const description =
-  "Vishwaa Reddy is an Applied AI Engineer in Mumbai building LLM tooling, computer vision and automation agents that ship into real businesses.";
+  "Vishwaa Reddy — AI Engineer & AI Automation, Mumbai. Building LLM tooling, computer vision and automation agents that ship into real businesses.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(profile.siteUrl),
@@ -34,7 +34,8 @@ export const metadata: Metadata = {
   description,
   authors: [{ name: profile.name, url: profile.links.github }],
   keywords: [
-    "Applied AI Engineer",
+    "AI Engineer",
+    "AI Automation",
     "LLM tooling",
     "Python SDK",
     "Computer vision",

@@ -72,16 +72,15 @@ export function OcrChapter({ study }: { study: CaseStudy }) {
             {scene3D ? (
               <>
                 {/* Empty stage the 3D input frame and conv planes are fitted to. */}
-                <p className="mb-2 font-mono text-[0.62rem] text-faint">
-                  illustrative feature maps · fixed kernels on this frame · the real pipeline is OpenCV + PaddleOCR
-                </p>
                 <div
                   data-stage="ocr"
                   data-copy
                   role="img"
                   aria-label="A game frame as the input plane, a scan line, then four convolution-layer planes showing feature maps computed from the frame with edge and blur kernels; boxes snap onto the kill feed and the names fly into the table."
                   className="relative aspect-video w-full"
-                />
+                >
+                  <p className="absolute left-0 top-0 font-mono text-[0.6rem] uppercase tracking-wider text-faint">illustrative</p>
+                </div>
                 <table data-copy className="mt-4 w-full font-mono text-[0.72rem]">
                   <caption className="mb-2 text-left text-[0.62rem] uppercase tracking-wider text-faint">
                     Structured result (example data)

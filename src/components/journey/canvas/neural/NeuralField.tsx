@@ -5,6 +5,7 @@ import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { createActivations, createMlp, forward, rng } from "@/lib/mlp";
 import { chapterProgress, CHAPTERS, pointer, useJourney, type Tier } from "@/store/journey";
+import { fitToStage } from "../stage";
 import { buildGraph, edgeWeights } from "./graph";
 import { NetworkMesh, type NetworkHandle } from "./NetworkMesh";
 
@@ -23,13 +24,16 @@ const CURSOR_RADIUS = 110;
 const CURSOR_GAIN = 3;
 
 const projected = new THREE.Vector3();
+/** Where the contact stage sits in world space (the field converges onto it). */
+const target = new THREE.Object3D();
+const CONTACT = 11;
 
 /**
  * How present the field is per chapter: quiet behind the hero copy, full
  * once the camera pulls back, and stepped back wherever a chapter has its
  * own stage visual so the two never compete.
  */
-const ALPHA_BY_CHAPTER = [0.3, 0.35, 0.75, 0.3, 0.25, 0.3, 0.3, 0.5, 0.6, 0.6, 0.5, 0.7];
+const ALPHA_BY_CHAPTER = [0.3, 0.35, 0.75, 0.3, 0.25, 0.3, 0.3, 0.5, 0.5, 0.3, 0.5, 0.7];
 function fieldAlpha(t: number) {
   const c = Math.max(0, Math.min(ALPHA_BY_CHAPTER.length - 1, Math.floor(t)));
   const next = Math.min(ALPHA_BY_CHAPTER.length - 1, c + 1);
@@ -46,6 +50,8 @@ function fieldAlpha(t: number) {
  */
 export function NeuralField({ tier, still }: { tier: Tier; still: boolean }) {
   const net = useRef<NetworkHandle>(null);
+  // The canvas can mount after ignition (it loads when idle): sweep from whichever is later.
+  const mountedAt = useRef(performance.now());
   const group = useRef<THREE.Group>(null);
 
   const model = useMemo(() => {
@@ -131,10 +137,17 @@ export function NeuralField({ tier, still }: { tier: Tier; still: boolean }) {
 
     const u = h.uniforms;
     u.uTime.value = time;
-    u.uIgnite.value = still ? 10 : ignited ? (performance.now() - ignitedAt) / 1000 : 0;
+    u.uIgnite.value = still ? 10 : ignited ? (performance.now() - Math.max(ignitedAt, mountedAt.current)) / 1000 : 0;
     // Scroll = forward pass: the wavefront moves input → output over the journey.
     u.uWave.value = THREE.MathUtils.clamp((t - 1) / (CHAPTERS.length - 2), 0, 1);
     u.uAlpha.value = still ? 0.8 : fieldAlpha(t);
+
+    // Contact: the whole network converges onto one output neuron beside the heading.
+    const fit = !still && t > CONTACT - 0.5 ? fitToStage("output", target, camera as THREE.PerspectiveCamera, size, 1, 1, { distance: 10 }) : null;
+    if (fit?.visible) {
+      u.uConverge.value = THREE.MathUtils.smoothstep(chapterProgress(t, CONTACT), 0.05, 0.6);
+      u.uConvergeTo.value.copy(g.worldToLocal(target.position.clone()));
+    } else u.uConverge.value = 0;
   });
 
   return (
@@ -149,8 +162,9 @@ export function NeuralField({ tier, still }: { tier: Tier; still: boolean }) {
         edgeAlpha={0.85}
         fogNear={9}
         fogFar={26}
-        // Edges are additive and overlap by the dozen, so the floor must be tiny.
-        maskFloor={0.03}
+        nearFade={[4, 8.5]}
+        // Nothing draws over copy: additive edges overlap by the dozen, so any floor would add up.
+        maskFloor={0}
       />
     </group>
   );

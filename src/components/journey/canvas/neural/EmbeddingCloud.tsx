@@ -4,8 +4,8 @@ import { useFrame } from "@react-three/fiber";
 import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { randn, rng } from "@/lib/mlp";
-import { chapterProgress, chapterVisibility, labelRegistry, useJourney, type Tier } from "@/store/journey";
-import { fitToStage } from "../stage";
+import { chapterProgress, labelRegistry, useJourney, type Tier } from "@/store/journey";
+import { fitToStage, stageFade } from "../stage";
 import { CYAN, VIOLET } from "./NetworkMesh";
 
 const CHAPTER = 2;
@@ -130,9 +130,8 @@ export function EmbeddingCloud({ tier }: { tier: Tier }) {
     const g = outer.current;
     if (!g) return;
     const { t } = useJourney.getState();
-    let vis = chapterVisibility(t, CHAPTER, 0.06, 0.12);
-    const fit = vis > 0 ? fitToStage("embeddings", g, camera as THREE.PerspectiveCamera, size, CONTENT.w, CONTENT.h) : null;
-    vis = fit?.visible ? vis : 0;
+    const fit = fitToStage("embeddings", g, camera as THREE.PerspectiveCamera, size, CONTENT.w, CONTENT.h);
+    const vis = stageFade(fit, size);
     g.visible = vis > 0;
     const hideLabels = () => {
       for (let i = 0; i < CENTROIDS.length; i += 1) {
@@ -153,7 +152,7 @@ export function EmbeddingCloud({ tier }: { tier: Tier }) {
     u.uMorph.value = THREE.MathUtils.smoothstep(p, 0.42, 0.86);
     // Tokens arrive over p 0.31–0.51 (see WorkIntroChapter).
     u.uFlash.value = Math.max(0, 1 - Math.abs(p - 0.46) / 0.1);
-    u.uAlpha.value = vis * (0.35 + 0.65 * THREE.MathUtils.smoothstep(p, 0.05, 0.4));
+    u.uAlpha.value = vis * (0.6 + 0.4 * THREE.MathUtils.smoothstep(p, 0.05, 0.4));
     u.uPx.value = 3.4 * viewport.dpr * (size.width < 768 ? 0.8 : 1);
 
     // Cluster names, centred above each centroid and kept inside the stage.
